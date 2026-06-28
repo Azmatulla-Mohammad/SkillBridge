@@ -1,7 +1,8 @@
-from functools import lru_cache
 from pathlib import Path
+from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -34,9 +35,19 @@ class Settings(BaseSettings):
     supabase_service_role_key: str | None = None
     supabase_bucket: str = "skillbridge"
     whatsapp_number: str = "919999999999"
+
+    # SMTP settings (for email notifications)
+    smtp_host: str | None = None
+    smtp_port: int | None = None
+    smtp_username: str | None = None
+    smtp_password: str | None = None
+    smtp_from: str | None = None
+    smtp_to: str | None = None
+
     # Production admin bootstrap (create once)
     default_admin_email: str | None = None
     default_admin_password: str | None = None
+
 
     # Backwards-compatible legacy config (no longer used for bootstrap defaults)
     admin_bootstrap_email: str | None = None
