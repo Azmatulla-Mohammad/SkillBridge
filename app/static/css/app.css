@@ -351,6 +351,24 @@ a:focus-visible {
   width: 100%;
 }
 
+/* WhatsApp CTA button */
+.button-whatsapp {
+  color: #ffffff;
+  border-color: rgba(34, 197, 94, 0.55);
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+  box-shadow: 0 16px 34px rgba(34, 197, 94, 0.25);
+}
+
+.button-whatsapp:hover {
+  box-shadow: 0 22px 46px rgba(34, 197, 94, 0.32);
+}
+
+/* Ensure spacing between form submit and CTA on smaller screens */
+.form-card .button-whatsapp {
+  margin-top: 0.75rem;
+}
+
+
 .button-row,
 .actions-row {
   display: flex;

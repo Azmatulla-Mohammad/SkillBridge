@@ -2,32 +2,36 @@
 __pycache__/
 *.py[cod]
 *.pyo
+*.pyd
 
-# Virtual Environment
+# Virtual environments
 venv/
+.venv/
+env/
+
+# Environment variables
 .env
 
-# IDE
+# VS Code
 .vscode/
-.idea/
 
-# Database
-*.db
+# PyCharm
+.idea/
 
 # Logs
 *.log
 
-# Uploaded Files
-app/static/uploads/
+# Local databases
+*.db
+skillbridge.db
+smoke.db
 
-# OS Files
-.DS_Store
-Thumbs.db
-
-# Python Cache
+# Python cache
 .pytest_cache/
 .mypy_cache/
 
-# Temporary Files
-*.tmp
-*.bak
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
