@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block public_content %}
+  <section class="hero-section home-hero">
+    <div class="container">
+      <div class="hero-shell">
+        <div class="hero-bg-grid" aria-hidden="true"></div>
+        <div class="hero-bg-wave" aria-hidden="true"></div>
+        <div class="hero-float hero-float-one" aria-hidden="true"></div>
+        <div class="hero-float hero-float-two" aria-hidden="true"></div>
+        <div class="hero-copy">
+          <p class="eyebrow">Premium One-to-One Learning</p>
+          <h1>Personalized learning. Real skills. <span>Real results.</span></h1>
+          <p>
+            Personalized mentorship, practical assignments, real-time feedback, and complete support - all in one trusted platform.
+          </p>
+          <div class="button-row">
+            <a class="button button-primary" href="/book-demo">Book a Free Demo</a>
+            <a class="button button-secondary hero-secondary" href="/courses">Explore Courses</a>
+          </div>
+        </div>
+
+        <div class="hero-feature-panel glass-panel" aria-label="SkillBridge learning benefits">
+          <h2>Why SkillBridge?</h2>
+          <article class="hero-feature">
+            <span class="hero-feature-icon"><i data-lucide="users"></i></span>
+            <div>
+              <h3>Personalized Mentorship</h3>
+              <p>One-to-one guidance tailored to every learner's pace and goals.</p>
+            </div>
+          </article>
+          <article class="hero-feature">
+            <span class="hero-feature-icon"><i data-lucide="briefcase"></i></span>
+            <div>
+              <h3>Practical Learning</h3>
+              <p>Hands-on assignments and projects that build real skills.</p>
+            </div>
+          </article>
+          <article class="hero-feature">
+            <span class="hero-feature-icon"><i data-lucide="trending-up"></i></span>
+            <div>
+              <h3>Real Progress Tracking</h3>
+              <p>Clear feedback and progress updates you can see and measure.</p>
+            </div>
+          </article>
+          <article class="hero-feature">
+            <span class="hero-feature-icon"><i data-lucide="shield-check"></i></span>
+            <div>
+              <h3>Trusted Learning</h3>
+              <p>Your data is handled with careful security and privacy practices.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section value-section">
+    <div class="container">
+      <div class="section-heading center">
+        <p class="eyebrow">Why Choose SkillBridge</p>
+        <h2>Clear support from the first demo to every learning milestone.</h2>
+      </div>
+
+      <div class="grid grid-3 value-grid">
+        <article class="card value-card">
+          <span class="value-icon"><i data-lucide="user-check"></i></span>
+          <h3>One-to-One Mentorship</h3>
+          <p>Every learner works with direct mentor attention, not a crowded class format.</p>
+        </article>
+        <article class="card value-card">
+          <span class="value-icon"><i data-lucide="calendar-check"></i></span>
+          <h3>Flexible Learning Schedule</h3>
+          <p>Sessions and assignments follow a pace that supports consistent progress.</p>
+        </article>
+        <article class="card value-card">
+          <span class="value-icon"><i data-lucide="clipboard-check"></i></span>
+          <h3>Practical Assignments</h3>
+          <p>Students practice through structured tasks, projects, and mentor feedback.</p>
+        </article>
+        <article class="card value-card">
+          <span class="value-icon"><i data-lucide="circle-help"></i></span>
+          <h3>Live Doubt Support</h3>
+          <p>Questions are handled directly so blockers do not slow learning down.</p>
+        </article>
+        <article class="card value-card">
+          <span class="value-icon"><i data-lucide="bar-chart-3"></i></span>
+          <h3>Progress Visibility</h3>
+          <p>Assignments, feedback, and next steps stay visible in one organized space.</p>
+        </article>
+        <article class="card value-card">
+          <span class="value-icon"><i data-lucide="folder-kanban"></i></span>
+          <h3>Project-Based Learning</h3>
+          <p>Learners build confidence by applying concepts to realistic exercises.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section soft course-preview-section">
+    <div class="container">
+      <div class="section-heading left">
+        <p class="eyebrow">Courses</p>
+        <h2>Structured programs for focused skill development.</h2>
+      </div>
+      <div class="grid grid-3 compact-course-grid">
+        {% for course in courses %}
+          <article class="card compact-course-card">
+            <div class="course-icon" aria-hidden="true">
+              {% set course_title = course.title|lower %}
+              {% if "sql" in course_title or "database" in course_title %}
+                <i data-lucide="database"></i>
+              {% elif "python" in course_title %}
+                <i data-lucide="code-2"></i>
+              {% else %}
+                <i data-lucide="book-open"></i>
+              {% endif %}
+            </div>
+            <h3>{{ course.title }}</h3>
+            <p>{{ course.description }}</p>
+            <div class="course-meta">
+              <span>{{ course.duration_weeks }} weeks</span>
+              <span>1:1 Mentorship</span>
+            </div>
+            <strong>{{ course.price|currency }}</strong>
+          </article>
+        {% else %}
+          <article class="card compact-course-card">
+            <div class="course-icon" aria-hidden="true"><i data-lucide="book-open"></i></div>
+            <h3>Courses coming soon</h3>
+            <p>Book a demo and the team will guide you to the right learning path.</p>
+            <a class="inline-link" href="/book-demo">Book a Free Demo</a>
+          </article>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container cta-panel">
+      <div>
+        <p class="eyebrow">Ready to Start</p>
+        <h2>Book a free one-to-one demo.</h2>
+      </div>
+      <div class="button-row">
+        <a class="button button-primary" href="/book-demo">Book a Free Demo</a>
+        <a class="button button-secondary" href="/contact">Contact Team</a>
+      </div>
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+  <form method="get" class="card filter-bar">
+    <input type="text" name="search" value="{{ search }}" placeholder="Search students">
+    <select name="teacher_id">
+      <option value="">Any teacher</option>
+      {% for teacher in teachers %}
+        <option value="{{ teacher.id }}" {% if teacher_filter == teacher.id %}selected{% endif %}>{{ teacher.full_name }}</option>
+      {% endfor %}
+    </select>
+    <select name="course_id">
+      <option value="">Any course</option>
+      {% for course in courses %}
+        <option value="{{ course.id }}" {% if course_filter == course.id %}selected{% endif %}>{{ course.title }}</option>
+      {% endfor %}
+    </select>
+    <button class="button button-secondary" type="submit">Filter</button>
+  </form>
+
+  <div class="grid grid-2">
+    <article class="card">
+      <div class="section-heading left compact">
+        <p class="eyebrow">{{ 'Update Enrollment' if edit_enrollment else 'Create Enrollment' }}</p>
+        <h2>Assign student, teacher, and course</h2>
+      </div>
+      <form action="{% if edit_enrollment %}/admin/enrollments/{{ edit_enrollment.id }}/update{% else %}/admin/enrollments{% endif %}" method="post" class="stack">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        {% if not edit_enrollment %}
+          <label><span>Student</span><select name="student_id" required>{% for student in students %}<option value="{{ student.id }}">{{ student.full_name }}</option>{% endfor %}</select></label>
+        {% else %}
+          <div class="pill">{{ edit_enrollment.student.full_name }}</div>
+        {% endif %}
+        <label><span>Teacher</span><select name="teacher_id" required>{% for teacher in teachers %}<option value="{{ teacher.id }}" {% if edit_enrollment and edit_enrollment.teacher_id == teacher.id %}selected{% endif %}>{{ teacher.full_name }}</option>{% endfor %}</select></label>
+        <label><span>Course</span><select name="course_id" required>{% for course in courses %}<option value="{{ course.id }}" {% if edit_enrollment and edit_enrollment.course_id == course.id %}selected{% endif %}>{{ course.title }}</option>{% endfor %}</select></label>
+        <label><span>Status</span><select name="status" required><option value="active" {% if not edit_enrollment or edit_enrollment.status.value == 'active' %}selected{% endif %}>Active</option><option value="paused" {% if edit_enrollment and edit_enrollment.status.value == 'paused' %}selected{% endif %}>Paused</option><option value="completed" {% if edit_enrollment and edit_enrollment.status.value == 'completed' %}selected{% endif %}>Completed</option></select></label>
+        <label><span>Start Date</span><input type="date" name="start_date" value="{{ edit_enrollment.start_date if edit_enrollment and edit_enrollment.start_date else '' }}"></label>
+        <label><span>Meeting Link</span><input type="url" name="meeting_link" value="{{ edit_enrollment.meeting_link if edit_enrollment else '' }}"></label>
+        {% if edit_enrollment %}
+          <label><span>Progress Percent</span><input type="number" name="progress_percent" value="{{ edit_enrollment.progress_percent }}" min="0" max="100"></label>
+        {% endif %}
+        <label><span>Notes</span><textarea name="notes" rows="4">{{ edit_enrollment.notes if edit_enrollment else '' }}</textarea></label>
+        <div class="button-row">
+          <button type="submit" class="button button-primary">{{ 'Save Changes' if edit_enrollment else 'Create Enrollment' }}</button>
+          {% if edit_enrollment %}
+            <a class="button button-secondary" href="/admin/enrollments">Cancel Edit</a>
+          {% endif %}
+        </div>
+      </form>
+    </article>
+
+    <article class="card table-card">
+      <div class="section-heading left compact">
+        <p class="eyebrow">Assignments</p>
+        <h2>{{ total }} active mappings</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Teacher</th>
+              <th>Course</th>
+              <th>Progress</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for enrollment in enrollments %}
+              <tr>
+                <td>{{ enrollment.student.full_name }}</td>
+                <td>{{ enrollment.teacher.full_name }}</td>
+                <td>{{ enrollment.course.title }}</td>
+                <td>{{ enrollment.progress_percent }}%</td>
+                <td>
+                  <div class="actions-row">
+                    <a class="text-action" href="/admin/enrollments?edit={{ enrollment.id }}">Edit</a>
+                    <form action="/admin/enrollments/{{ enrollment.id }}/delete" method="post">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                      <button class="text-action danger-action" type="submit" data-confirm="Remove this enrollment?">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% else %}
+              <tr><td colspan="5">No enrollments found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </div>
+{% endblock %}
+

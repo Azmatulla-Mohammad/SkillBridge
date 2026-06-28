@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block public_content %}
+  <section class="section courses-page">
+    <div class="page-shape page-shape-one" aria-hidden="true"></div>
+    <div class="page-shape page-shape-two" aria-hidden="true"></div>
+    <div class="container">
+      <div class="courses-hero-row">
+        <div class="section-heading left">
+          <p class="eyebrow">SkillBridge Programs</p>
+          <h1>Our Courses</h1>
+          <p class="muted">Structured programs designed for one-to-one learning and real skill development.</p>
+        </div>
+        <div class="courses-illustration" aria-hidden="true">
+          <div class="book-stack">
+            <span></span>
+            <span></span>
+            <span></span>
+            <i data-lucide="graduation-cap"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-3 course-card-grid">
+        {% for course in courses %}
+          {% set course_title = course.title|lower %}
+          <article class="card course-card public-course-card">
+            <div class="course-card-topline">
+              <div class="course-icon" aria-hidden="true">
+                {% if "sql" in course_title or "database" in course_title %}
+                  <i data-lucide="database"></i>
+                {% elif "python" in course_title %}
+                  <i data-lucide="code-2"></i>
+                {% else %}
+                  <i data-lucide="book-open"></i>
+                {% endif %}
+              </div>
+              <span class="course-level-badge">
+                {% if loop.first %}Popular{% elif loop.index == 2 %}Best Seller{% else %}Focused Track{% endif %}
+              </span>
+            </div>
+
+            <div class="course-card-copy">
+              <h2>{{ course.title }}</h2>
+              <p>{{ course.description }}</p>
+            </div>
+
+            <div class="course-meta">
+              <span><i data-lucide="calendar-days"></i>{{ course.duration_weeks }} weeks</span>
+              <span><i data-lucide="user-round-check"></i>1:1 Mentorship</span>
+            </div>
+
+            <div class="course-bottom">
+              <div class="course-price">{{ course.price|currency }}</div>
+              <a class="button button-primary course-cta" href="/book-demo">Book Now <i data-lucide="arrow-right"></i></a>
+            </div>
+          </article>
+        {% else %}
+          <article class="card course-card public-course-card">
+            <div class="course-icon" aria-hidden="true"><i data-lucide="book-open"></i></div>
+            <div class="course-card-copy">
+              <h2>Courses coming soon</h2>
+              <p>Book a free demo and our team will help you choose the right learning path.</p>
+            </div>
+            <a class="button button-primary course-cta" href="/book-demo">Book a Demo <i data-lucide="arrow-right"></i></a>
+          </article>
+        {% endfor %}
+      </div>
+
+      <div class="course-trust-strip">
+        <div><i data-lucide="badge-check"></i><strong>One-to-One Mentorship</strong><span>Personalized guidance</span></div>
+        <div><i data-lucide="calendar-clock"></i><strong>Flexible Schedule</strong><span>Learn at your pace</span></div>
+        <div><i data-lucide="award"></i><strong>Certificate</strong><span>Upon completion</span></div>
+        <div><i data-lucide="headphones"></i><strong>Support</strong><span>Always here to help</span></div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

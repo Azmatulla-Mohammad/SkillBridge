@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="student-page-heading">
+    <div>
+      <p class="eyebrow">Materials</p>
+      <h2>{{ total }} study files</h2>
+      <p>Download mentor-shared resources, notes, and class material from one organized library.</p>
+    </div>
+  </section>
+
+  <article class="card table-card student-table-card">
+    <div class="section-heading left compact">
+      <p class="eyebrow">Materials</p>
+      <h2>{{ total }} files</h2>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Title</th><th>Course</th><th>Download</th></tr></thead>
+        <tbody>
+          {% for material in materials %}
+            <tr>
+              <td>
+                <strong>{{ material.title }}</strong>
+                <div class="muted">{{ material.description }}</div>
+              </td>
+              <td>{{ material.course.title }}</td>
+              <td><a class="button button-secondary button-small" href="{{ material.file_url }}" target="_blank" rel="noreferrer"><i data-lucide="download"></i>Download</a></td>
+            </tr>
+          {% else %}
+            <tr><td colspan="3">No materials available yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+{% endblock %}

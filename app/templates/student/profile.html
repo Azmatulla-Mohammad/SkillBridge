@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="student-page-heading">
+    <div>
+      <p class="eyebrow">Student Profile</p>
+      <h2>Your learner profile</h2>
+      <p>Keep your personal details and learning goals updated for better mentor support.</p>
+    </div>
+  </section>
+
+  <article class="card narrow-card student-profile-card">
+    <div class="section-heading left compact">
+      <p class="eyebrow">Student Profile</p>
+      <h2>Update your information</h2>
+    </div>
+    <form action="/student/profile" method="post" class="stack">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label><span>Full Name</span><input type="text" name="full_name" value="{{ profile_user.full_name }}"></label>
+      <label><span>Phone</span><input type="text" name="phone" value="{{ profile_user.phone if profile_user.phone else '' }}"></label>
+      <label><span>Bio</span><textarea name="bio" rows="4">{{ profile_user.bio if profile_user.bio else '' }}</textarea></label>
+      <label><span>Guardian Name</span><input type="text" name="guardian_name" value="{{ profile_user.student_profile.guardian_name if profile_user.student_profile else '' }}"></label>
+      <label><span>Learning Goals</span><textarea name="learning_goals" rows="4">{{ profile_user.student_profile.learning_goals if profile_user.student_profile else '' }}</textarea></label>
+      <button type="submit" class="button button-primary">Save Profile</button>
+    </form>
+  </article>
+{% endblock %}

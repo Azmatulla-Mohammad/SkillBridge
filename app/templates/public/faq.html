@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block public_content %}
+  <section class="section faq-page">
+    <div class="page-shape faq-shape-one" aria-hidden="true"></div>
+    <div class="page-shape faq-shape-two" aria-hidden="true"></div>
+    <div class="container faq-layout">
+      <div class="faq-visual" aria-hidden="true">
+        <div class="faq-question-card">
+          <i data-lucide="circle-help"></i>
+        </div>
+        <div class="faq-chat-card">
+          <i data-lucide="messages-square"></i>
+        </div>
+        <div class="faq-spark faq-spark-one"></div>
+        <div class="faq-spark faq-spark-two"></div>
+      </div>
+
+      <div class="faq-content">
+        <div class="section-heading center">
+          <p class="eyebrow">Frequently Asked Questions</p>
+          <h1>Everything important, answered clearly.</h1>
+          <p class="muted">Find answers about demos, courses, mentoring, classes, and enrollment.</p>
+        </div>
+
+        <div class="faq-list faq-accordion">
+          {% for item in faqs %}
+            <details class="card faq-item" {% if loop.first %}open{% endif %}>
+              <summary>
+                <span>{{ item.question }}</span>
+                <i data-lucide="plus"></i>
+              </summary>
+              <p class="muted">{{ item.answer }}</p>
+            </details>
+          {% endfor %}
+        </div>
+
+        <div class="faq-cta">
+          <div>
+            <h2>Still have questions?</h2>
+            <p>We're here to help you with any other queries.</p>
+          </div>
+          <div class="button-row">
+            <a class="button button-secondary" href="/book-demo">Book Demo</a>
+            <a class="button button-primary" href="/contact">Contact Us <i data-lucide="arrow-right"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}

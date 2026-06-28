@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="grid grid-4">
+    <article class="card metric-card accent"><span>Total Students</span><strong>{{ stats.students }}</strong></article>
+    <article class="card metric-card"><span>Total Teachers</span><strong>{{ stats.teachers }}</strong></article>
+    <article class="card metric-card"><span>Courses</span><strong>{{ stats.courses }}</strong></article>
+    <article class="card metric-card"><span>Assignments</span><strong>{{ stats.assignments }}</strong></article>
+  </div>
+
+  <div class="grid grid-2">
+    <article class="card">
+      <div class="section-heading left compact">
+        <p class="eyebrow">Quick Actions</p>
+        <h2>Operate the platform</h2>
+      </div>
+      <div class="button-row wrap">
+        <a class="button button-primary" href="/admin/users">Create Accounts</a>
+        <a class="button button-secondary" href="/admin/enrollments">Assign Teacher & Course</a>
+        <a class="button button-secondary" href="/admin/assignments">Manage Assignments</a>
+        <a class="button button-secondary" href="/admin/logs">Review Logs</a>
+      </div>
+      <div class="chart-placeholder">
+        <div></div>
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <p class="muted small">Chart placeholders are visual-only for phase 1, while the data tables remain fully live.</p>
+    </article>
+
+    <article class="card">
+      <div class="section-heading left compact">
+        <p class="eyebrow">Upcoming Classes</p>
+        <h2>Scheduled meetings</h2>
+      </div>
+      <div class="stack">
+        {% for meeting in upcoming_meetings %}
+          <div class="list-row">
+            <div>
+              <strong>{{ meeting.title }}</strong>
+              <p class="muted">{{ meeting.enrollment.student.full_name }} • {{ meeting.enrollment.course.title }}</p>
+            </div>
+            <span>{{ meeting.scheduled_at|datetime }}</span>
+          </div>
+        {% else %}
+          <p class="muted">No meetings are scheduled yet.</p>
+        {% endfor %}
+      </div>
+    </article>
+  </div>
+
+  <article class="card table-card">
+    <div class="section-heading left compact">
+      <p class="eyebrow">Recent Activity</p>
+      <h2>Platform audit trail</h2>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>When</th>
+            <th>Action</th>
+            <th>Summary</th>
+            <th>Actor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in recent_activity %}
+            <tr>
+              <td>{{ item.created_at|datetime }}</td>
+              <td>{{ item.action }}</td>
+              <td>{{ item.summary }}</td>
+              <td>{{ item.actor.full_name if item.actor else 'System' }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4">No activity yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+{% endblock %}
+

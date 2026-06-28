@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="student-hero-card">
+    <div>
+      <p class="eyebrow">Learning Workspace</p>
+      <h2>Welcome back, {{ current_user.full_name.split(' ')[0] }}.</h2>
+      <p>Keep your courses, live sessions, assignments, materials, and feedback moving in one focused place.</p>
+      <div class="student-hero-actions">
+        <a class="button button-primary" href="/student/assignments"><i data-lucide="clipboard-check"></i>View Assignments</a>
+        <a class="button button-secondary" href="/student/materials"><i data-lucide="library"></i>Study Materials</a>
+      </div>
+    </div>
+    <div class="student-hero-visual" aria-hidden="true">
+      <div class="learning-device">
+        <div class="device-top"></div>
+        <div class="device-line wide"></div>
+        <div class="device-line"></div>
+        <div class="device-progress"><span></span></div>
+      </div>
+      <div class="floating-note note-one"><i data-lucide="video"></i></div>
+      <div class="floating-note note-two"><i data-lucide="graduation-cap"></i></div>
+    </div>
+  </section>
+
+  <div class="student-metrics-grid">
+    <article class="card student-metric-card accent">
+      <span><i data-lucide="book-open-check"></i>Courses</span>
+      <strong>{{ enrollments|length }}</strong>
+      <p>Active learning tracks</p>
+    </article>
+    <article class="card student-metric-card">
+      <span><i data-lucide="file-check-2"></i>Assignments</span>
+      <strong>{{ assignments|length }}</strong>
+      <p>Current tasks and practice</p>
+    </article>
+    <article class="card student-metric-card">
+      <span><i data-lucide="calendar-days"></i>Upcoming Meetings</span>
+      <strong>{{ meetings|length }}</strong>
+      <p>Live sessions scheduled</p>
+    </article>
+  </div>
+
+  <div class="grid grid-2 student-dashboard-grid">
+    <article class="card student-panel">
+      <div class="section-heading left compact">
+        <p class="eyebrow">My Progress</p>
+        <h2>Current enrollments</h2>
+      </div>
+      <div class="student-list">
+        {% for enrollment in enrollments %}
+          <div class="student-progress-row">
+            <div>
+              <strong>{{ enrollment.course.title }}</strong>
+              <p>{{ enrollment.teacher.full_name }}</p>
+              <div class="student-progress-bar"><span style="width: {{ enrollment.progress_percent }}%"></span></div>
+            </div>
+            <span>{{ enrollment.progress_percent }}%</span>
+          </div>
+        {% else %}
+          <div class="student-empty-state"><i data-lucide="book-open"></i><p>No course assigned yet.</p></div>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="card student-panel">
+      <div class="section-heading left compact">
+        <p class="eyebrow">Upcoming Classes</p>
+        <h2>Meeting schedule</h2>
+      </div>
+      <div class="student-list">
+        {% for meeting in meetings %}
+          <div class="student-schedule-row">
+            <span class="student-row-icon"><i data-lucide="video"></i></span>
+            <div>
+              <strong>{{ meeting.title }}</strong>
+              <p>{{ meeting.enrollment.course.title }}</p>
+            </div>
+            <a class="button button-secondary button-small" href="{{ meeting.meeting_url }}" target="_blank" rel="noreferrer">Join</a>
+          </div>
+        {% else %}
+          <div class="student-empty-state"><i data-lucide="calendar"></i><p>No upcoming meetings yet.</p></div>
+        {% endfor %}
+      </div>
+    </article>
+  </div>
+
+  <div class="grid grid-2 student-dashboard-grid">
+    <article class="card table-card student-table-card">
+      <div class="section-heading left compact">
+        <p class="eyebrow">Assignments</p>
+        <h2>Recent work</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Title</th><th>Due</th><th>Status</th></tr></thead>
+          <tbody>
+            {% for assignment in assignments %}
+              <tr>
+                <td>{{ assignment.title }}</td>
+                <td>{{ assignment.due_at|datetime }}</td>
+                <td>
+                  {% set match = submissions | selectattr('assignment_id', 'equalto', assignment.id) | list %}
+                  <span class="status {{ 'status-ok' if match else 'status-warn' }}">{{ 'Submitted' if match else 'Pending' }}</span>
+                </td>
+              </tr>
+            {% else %}
+              <tr><td colspan="3">No assignments yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="card student-panel">
+      <div class="section-heading left compact">
+        <p class="eyebrow">Announcements</p>
+        <h2>Latest updates</h2>
+      </div>
+      <div class="student-list">
+        {% for announcement in announcements %}
+          <div class="student-announcement-item">
+            <strong>{{ announcement.title }}</strong>
+            <p class="muted small">{{ announcement.created_at|datetime }}</p>
+            <p>{{ announcement.content }}</p>
+          </div>
+        {% else %}
+          <div class="student-empty-state"><i data-lucide="bell"></i><p>No announcements posted yet.</p></div>
+        {% endfor %}
+      </div>
+    </article>
+  </div>
+{% endblock %}

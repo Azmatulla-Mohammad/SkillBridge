@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="student-page-heading">
+    <div>
+      <p class="eyebrow">Teacher Profile</p>
+      <h2>Update your workspace details</h2>
+      <p>Keep your teaching information current so students always get the best support and scheduling.</p>
+    </div>
+  </section>
+
+  <article class="card narrow-card student-profile-card">
+    <div class="section-heading left compact">
+      <p class="eyebrow">Teacher Profile</p>
+      <h2>Profile information</h2>
+    </div>
+    <form action="/teacher/profile" method="post" class="stack">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label><span>Full Name</span><input type="text" name="full_name" value="{{ profile_user.full_name }}"></label>
+      <label><span>Phone</span><input type="text" name="phone" value="{{ profile_user.phone if profile_user.phone else '' }}"></label>
+      <label><span>Bio</span><textarea name="bio" rows="4">{{ profile_user.bio if profile_user.bio else '' }}</textarea></label>
+      <label><span>Headline</span><input type="text" name="headline" value="{{ profile_user.teacher_profile.headline if profile_user.teacher_profile else '' }}"></label>
+      <label><span>Expertise</span><input type="text" name="expertise" value="{{ profile_user.teacher_profile.expertise if profile_user.teacher_profile else '' }}"></label>
+      <label><span>Default Meeting Link</span><input type="url" name="meeting_link" value="{{ profile_user.teacher_profile.meeting_link if profile_user.teacher_profile else '' }}"></label>
+      <button type="submit" class="button button-primary">Save Profile</button>
+    </form>
+  </article>
+{% endblock %}
+
+

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block public_content %}
+  <section class="section form-page">
+    <div class="page-shape form-shape-one" aria-hidden="true"></div>
+    <div class="page-shape form-shape-two" aria-hidden="true"></div>
+    <div class="container split-grid form-split">
+      <div class="form-intro">
+        <p class="eyebrow">Book a Free Demo</p>
+        <h1>Book your free one-to-one demo</h1>
+        <p>
+          Tell us your learning goals and our team will connect with you to schedule your demo session.
+        </p>
+
+        <ul class="check-list" aria-label="Demo benefits">
+          <li><i data-lucide="check"></i>Understand the course in detail</li>
+          <li><i data-lucide="check"></i>Meet your potential mentor</li>
+          <li><i data-lucide="check"></i>Get a learning roadmap</li>
+          <li><i data-lucide="check"></i>Ask your questions</li>
+        </ul>
+
+        <div class="demo-illustration" aria-hidden="true">
+          <div class="student-figure">
+            <span class="student-head"></span>
+            <span class="student-body"></span>
+            <span class="laptop-base"></span>
+          </div>
+          <div class="chat-bubble"><i data-lucide="message-circle"></i></div>
+          <div class="plant-shape"></div>
+        </div>
+      </div>
+
+      <div class="card form-card classic-form-card glass-form-card">
+        <form action="/book-demo" method="post" class="classic-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+          <div class="field">
+            <label for="demo-full-name">Full Name</label>
+            <input id="demo-full-name" type="text" name="name" required placeholder="Enter your full name" autocomplete="name">
+          </div>
+
+          <div class="field">
+            <label for="demo-email">Email</label>
+            <input id="demo-email" type="email" name="email" required placeholder="Enter your email" autocomplete="email">
+          </div>
+
+          <div class="field">
+            <label for="demo-phone">Phone</label>
+            <input id="demo-phone" type="tel" name="phone" placeholder="Enter your phone number" autocomplete="tel">
+          </div>
+
+          <div class="field">
+            <label for="demo-course">Course Interest</label>
+            <select id="demo-course" name="course_interest">
+              <option value="" selected>Select a course</option>
+              {% for course in courses %}
+                <option value="{{ course.title }}">{{ course.title }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="demo-message">Message</label>
+            <textarea id="demo-message" name="message" rows="5" required placeholder="Tell us about your learning goals and what you want to achieve."></textarea>
+          </div>
+
+          <button type="submit" class="button button-primary button-block">Submit Demo Request <i data-lucide="arrow-right"></i></button>
+        </form>
+      </div>
+    </div>
+  </section>
+{% endblock %}

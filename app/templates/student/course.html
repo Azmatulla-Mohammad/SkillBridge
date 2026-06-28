@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="student-page-heading">
+    <div>
+      <p class="eyebrow">My Course</p>
+      <h2>Your learning tracks</h2>
+      <p>Review your assigned course, mentor, status, and progress at a glance.</p>
+    </div>
+  </section>
+
+  <div class="student-course-grid">
+    {% for enrollment in enrollments %}
+      <article class="card student-course-card">
+        <div class="course-card-topline">
+          <span class="course-icon"><i data-lucide="book-open-check"></i></span>
+          <span class="course-level-badge">{{ enrollment.status.value|title }}</span>
+        </div>
+        <div>
+          <h3>{{ enrollment.course.title }}</h3>
+          <p>{{ enrollment.course.description }}</p>
+        </div>
+        <div class="student-course-meta">
+          <div><span>Teacher</span><strong>{{ enrollment.teacher.full_name }}</strong></div>
+          <div><span>Progress</span><strong>{{ enrollment.progress_percent }}%</strong></div>
+        </div>
+        <div class="student-progress-bar"><span style="width: {{ enrollment.progress_percent }}%"></span></div>
+        {% if enrollment.meeting_link %}
+          <a class="button button-primary" href="{{ enrollment.meeting_link }}" target="_blank" rel="noreferrer"><i data-lucide="video"></i>Open Meet Link</a>
+        {% else %}
+          <span class="pill">Meeting link will appear here</span>
+        {% endif %}
+      </article>
+    {% else %}
+      <article class="card student-empty-card">
+        <i data-lucide="book-open"></i>
+        <h3>No course has been assigned yet.</h3>
+        <p>Your assigned course and mentor details will appear here.</p>
+      </article>
+    {% endfor %}
+  </div>
+{% endblock %}

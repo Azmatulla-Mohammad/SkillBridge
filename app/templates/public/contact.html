@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block public_content %}
+  <section class="section form-page">
+    <div class="page-shape contact-shape-one" aria-hidden="true"></div>
+    <div class="page-shape contact-shape-two" aria-hidden="true"></div>
+    <div class="container split-grid form-split">
+      <div class="form-intro contact-intro">
+        <p class="eyebrow">Contact Us</p>
+        <h1>We're here to help you.</h1>
+        <p>
+          Reach out for admissions, course details, partnerships, or any other queries.
+        </p>
+
+        <div class="contact-methods">
+          <div class="contact-method">
+            <span><i data-lucide="mail"></i></span>
+            <div>
+              <h2>Email</h2>
+              <p>Use the form and our team will reply to your email.</p>
+            </div>
+          </div>
+          <div class="contact-method">
+            <span><i data-lucide="phone"></i></span>
+            <div>
+              <h2>Phone</h2>
+              <p>Add your number in the form for a callback.</p>
+            </div>
+          </div>
+          <div class="contact-method">
+            <span><i data-lucide="clock-3"></i></span>
+            <div>
+              <h2>Working Hours</h2>
+              <p>Our team responds during weekday learning hours.</p>
+            </div>
+          </div>
+          <div class="contact-method">
+            <span><i data-lucide="map-pin"></i></span>
+            <div>
+              <h2>Location</h2>
+              <p>Online-first mentorship available from anywhere.</p>
+            </div>
+          </div>
+          {% if has_whatsapp_number %}
+            <a class="contact-method" href="https://wa.me/{{ whatsapp_number }}" target="_blank" rel="noreferrer">
+              <span><i data-lucide="message-circle"></i></span>
+              <div>
+                <h2>WhatsApp</h2>
+                <p>Chat with us on WhatsApp.</p>
+              </div>
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card form-card classic-form-card glass-form-card">
+        <form action="/contact" method="post" class="classic-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+          <div class="field">
+            <label for="contact-full-name">Full Name</label>
+            <input id="contact-full-name" type="text" name="name" required placeholder="Enter your full name" autocomplete="name">
+          </div>
+
+          <div class="field">
+            <label for="contact-email">Email</label>
+            <input id="contact-email" type="email" name="email" required placeholder="Enter your email" autocomplete="email">
+          </div>
+
+          <div class="field">
+            <label for="contact-phone">Phone</label>
+            <input id="contact-phone" type="tel" name="phone" placeholder="Enter your phone number" autocomplete="tel">
+          </div>
+
+          <div class="field">
+            <label for="contact-course">Course Interest</label>
+            <select id="contact-course" name="course_interest">
+              <option value="" selected>Select a course (optional)</option>
+              {% for course in courses %}
+                <option value="{{ course.title }}">{{ course.title }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="contact-message">Message</label>
+            <textarea id="contact-message" name="message" rows="5" required placeholder="How can we help you?"></textarea>
+          </div>
+
+          <button type="submit" class="button button-primary button-block">Send Message <i data-lucide="arrow-right"></i></button>
+        </form>
+      </div>
+    </div>
+  </section>
+{% endblock %}

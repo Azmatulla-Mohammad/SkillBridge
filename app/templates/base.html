@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }} | {{ app_name }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ request.url_for('static', path='css/app.css') }}">
+  </head>
+  <body class="{% if current_user %}dashboard-body {{ current_user.role.value }}-portal{% else %}marketing-body{% if active_path == '/login' %} login-body{% endif %}{% endif %}">
+    {% if flashes %}
+      <div class="flash-stack">
+        {% for flash in flashes %}
+          <div class="flash flash-{{ flash.level }}">{{ flash.message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if current_user %}
+      <div class="dashboard-shell">
+        <aside class="sidebar" id="sidebar">
+          <div class="sidebar-brand">
+            <a href="/" class="brand-mark"><i data-lucide="graduation-cap"></i>{{ app_name }}</a>
+            <span class="eyebrow">{{ current_user.role.value|title }} Workspace</span>
+          </div>
+
+          <nav class="sidebar-nav">
+            {% if current_user.role.value == 'admin' %}
+              <a class="{% if active_path == '/admin' %}active{% endif %}" href="/admin"><i data-lucide="layout-dashboard"></i>Overview</a>
+              <a class="{% if active_path.startswith('/admin/users') %}active{% endif %}" href="/admin/users"><i data-lucide="users"></i>Users</a>
+              <a class="{% if active_path.startswith('/admin/courses') %}active{% endif %}" href="/admin/courses"><i data-lucide="book-open-text"></i>Courses</a>
+              <a class="{% if active_path.startswith('/admin/enrollments') %}active{% endif %}" href="/admin/enrollments"><i data-lucide="link-2"></i>Enrollments</a>
+              <a class="{% if active_path.startswith('/admin/assignments') %}active{% endif %}" href="/admin/assignments"><i data-lucide="clipboard-check"></i>Assignments</a>
+              <a class="{% if active_path.startswith('/admin/logs') %}active{% endif %}" href="/admin/logs"><i data-lucide="activity"></i>Activity Logs</a>
+            {% elif current_user.role.value == 'teacher' %}
+              <a class="{% if active_path == '/teacher' %}active{% endif %}" href="/teacher"><i data-lucide="layout-dashboard"></i>Overview</a>
+              <a class="{% if active_path.startswith('/teacher/students') %}active{% endif %}" href="/teacher/students"><i data-lucide="user-round-search"></i>My Students</a>
+              <a class="{% if active_path.startswith('/teacher/materials') %}active{% endif %}" href="/teacher/materials"><i data-lucide="folder-kanban"></i>Materials</a>
+              <a class="{% if active_path.startswith('/teacher/assignments') or active_path.startswith('/teacher/submissions') %}active{% endif %}" href="/teacher/assignments"><i data-lucide="clipboard-list"></i>Assignments</a>
+              <a class="{% if active_path.startswith('/teacher/announcements') %}active{% endif %}" href="/teacher/announcements"><i data-lucide="megaphone"></i>Announcements</a>
+              <a class="{% if active_path.startswith('/teacher/meetings') %}active{% endif %}" href="/teacher/meetings"><i data-lucide="calendar-days"></i>Meetings</a>
+              <a class="{% if active_path.startswith('/teacher/profile') %}active{% endif %}" href="/teacher/profile"><i data-lucide="circle-user-round"></i>Profile</a>
+            {% else %}
+              <a class="{% if active_path == '/student' %}active{% endif %}" href="/student"><i data-lucide="layout-dashboard"></i>Overview</a>
+              <a class="{% if active_path.startswith('/student/course') %}active{% endif %}" href="/student/course"><i data-lucide="book-marked"></i>My Course</a>
+              <a class="{% if active_path.startswith('/student/materials') %}active{% endif %}" href="/student/materials"><i data-lucide="library"></i>Materials</a>
+              <a class="{% if active_path.startswith('/student/assignments') %}active{% endif %}" href="/student/assignments"><i data-lucide="file-check-2"></i>Assignments</a>
+              <a class="{% if active_path.startswith('/student/feedback') %}active{% endif %}" href="/student/feedback"><i data-lucide="message-square-text"></i>Feedback</a>
+              <a class="{% if active_path.startswith('/student/meetings') %}active{% endif %}" href="/student/meetings"><i data-lucide="video"></i>Meetings</a>
+              <a class="{% if active_path.startswith('/student/announcements') %}active{% endif %}" href="/student/announcements"><i data-lucide="bell"></i>Announcements</a>
+              <a class="{% if active_path.startswith('/student/profile') %}active{% endif %}" href="/student/profile"><i data-lucide="circle-user-round"></i>Profile</a>
+            {% endif %}
+          </nav>
+
+          <form action="/logout" method="post" class="sidebar-footer">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="button button-ghost button-block">Logout</button>
+          </form>
+        </aside>
+
+        <main class="dashboard-main">
+          <div class="topbar">
+            <button class="sidebar-toggle" type="button" data-toggle-sidebar aria-label="Toggle sidebar">
+              <i data-lucide="panel-left-open"></i>
+              Menu
+            </button>
+            <div>
+              <p class="eyebrow">SkillBridge</p>
+              <h1>{{ title }}</h1>
+            </div>
+            <div class="topbar-user">
+              <i data-lucide="shield-check"></i>
+              <span>{{ current_user.full_name }}</span>
+              <small>{{ current_user.email }}</small>
+            </div>
+          </div>
+          <section class="page-body">
+            {% block content %}{% endblock %}
+          </section>
+        </main>
+      </div>
+    {% else %}
+      <header class="site-header">
+        <div class="container nav-shell">
+          <a class="brand-mark" href="/"><i data-lucide="sparkles"></i>SkillBridge</a>
+          <button class="mobile-nav-toggle" type="button" data-toggle-mobile-nav aria-label="Toggle navigation">
+            <i data-lucide="menu"></i>
+          </button>
+          <nav class="site-nav">
+            <a class="{% if active_path.startswith('/about') %}active{% endif %}" href="/about">About</a>
+            <a class="{% if active_path.startswith('/courses') %}active{% endif %}" href="/courses">Courses</a>
+            <a class="{% if active_path.startswith('/book-demo') %}active{% endif %}" href="/book-demo">Book a Demo</a>
+            <a class="{% if active_path.startswith('/contact') %}active{% endif %}" href="/contact">Contact</a>
+            <a class="{% if active_path.startswith('/faq') %}active{% endif %}" href="/faq">FAQ</a>
+          </nav>
+          <a class="button button-primary nav-login" href="/login">Login</a>
+        </div>
+        <div class="mobile-nav" id="mobile-nav" aria-label="Mobile navigation">
+          <nav class="mobile-nav-links">
+            <a class="{% if active_path.startswith('/about') %}active{% endif %}" href="/about">About</a>
+            <a class="{% if active_path.startswith('/courses') %}active{% endif %}" href="/courses">Courses</a>
+            <a class="{% if active_path.startswith('/book-demo') %}active{% endif %}" href="/book-demo">Book a Demo</a>
+            <a class="{% if active_path.startswith('/contact') %}active{% endif %}" href="/contact">Contact</a>
+            <a class="{% if active_path.startswith('/faq') %}active{% endif %}" href="/faq">FAQ</a>
+          </nav>
+          <a class="button button-primary button-block" href="/login">Login</a>
+        </div>
+      </header>
+
+      <main>
+        {% block public_content %}{% endblock %}
+      </main>
+
+      <footer class="site-footer">
+        <div class="container footer-grid">
+          <div>
+            <p class="eyebrow">SkillBridge</p>
+            <h3>One-to-one online learning with real accountability.</h3>
+            <p class="muted">
+              Personalized mentorship, practical assignments, progress visibility, and support in one trusted place.
+            </p>
+          </div>
+          <div>
+            <h4>Explore</h4>
+            <a href="/about"><i data-lucide="chevron-right"></i>About</a>
+            <a href="/courses"><i data-lucide="chevron-right"></i>Courses</a>
+            <a href="/faq"><i data-lucide="chevron-right"></i>FAQ</a>
+          </div>
+          <div>
+            <h4>Contact</h4>
+            <a href="/book-demo"><i data-lucide="calendar-check-2"></i>Book a Demo</a>
+            <a href="/contact"><i data-lucide="mail"></i>Contact Us</a>
+            {% if has_whatsapp_number %}
+              <a href="https://wa.me/{{ whatsapp_number }}" target="_blank" rel="noreferrer"><i data-lucide="message-circle"></i>WhatsApp</a>
+            {% endif %}
+          </div>
+        </div>
+      </footer>
+
+      {% if has_whatsapp_number %}
+        <a class="whatsapp-float" href="https://wa.me/{{ whatsapp_number }}" target="_blank" rel="noreferrer">
+          <i data-lucide="message-circle"></i>
+          WhatsApp
+        </a>
+      {% endif %}
+    {% endif %}
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="{{ request.url_for('static', path='js/app.js') }}"></script>
+  </body>
+</html>

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+  <form method="get" class="card filter-bar">
+    <input type="text" name="search" value="{{ search }}" placeholder="Search courses">
+    <select name="active">
+      <option value="">Any status</option>
+      <option value="active" {% if active_filter == 'active' %}selected{% endif %}>Active</option>
+      <option value="inactive" {% if active_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+    </select>
+    <button class="button button-secondary" type="submit">Filter</button>
+  </form>
+
+  <div class="grid grid-2">
+    <article class="card">
+      <div class="section-heading left compact">
+        <p class="eyebrow">{{ 'Update Course' if edit_course else 'Create Course' }}</p>
+        <h2>{{ edit_course.title if edit_course else 'Add a new course' }}</h2>
+      </div>
+      <form action="{% if edit_course %}/admin/courses/{{ edit_course.id }}/update{% else %}/admin/courses{% endif %}" method="post" class="stack">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label><span>Title</span><input type="text" name="title" value="{{ edit_course.title if edit_course else '' }}" required></label>
+        <label><span>Slug</span><input type="text" name="slug" value="{{ edit_course.slug if edit_course else '' }}" placeholder="auto-generated if empty"></label>
+        <label><span>Description</span><textarea name="description" rows="5" required>{{ edit_course.description if edit_course else '' }}</textarea></label>
+        <label><span>Duration (weeks)</span><input type="number" name="duration_weeks" value="{{ edit_course.duration_weeks if edit_course else 12 }}" min="1" required></label>
+        <label><span>Price</span><input type="number" name="price" value="{{ edit_course.price if edit_course else 0 }}" min="0" required></label>
+        <label class="checkbox"><input type="checkbox" name="is_active" value="true" {% if not edit_course or edit_course.is_active %}checked{% endif %}><span>Course is active</span></label>
+        <div class="button-row">
+          <button type="submit" class="button button-primary">{{ 'Save Changes' if edit_course else 'Create Course' }}</button>
+          {% if edit_course %}
+            <a class="button button-secondary" href="/admin/courses">Cancel Edit</a>
+          {% endif %}
+        </div>
+      </form>
+    </article>
+
+    <article class="card table-card">
+      <div class="section-heading left compact">
+        <p class="eyebrow">Catalog</p>
+        <h2>{{ total }} courses</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for course in courses %}
+              <tr>
+                <td>
+                  <strong>{{ course.title }}</strong>
+                  <div class="muted">{{ course.duration_weeks }} weeks</div>
+                </td>
+                <td>{{ course.price|currency }}</td>
+                <td><span class="status {% if course.is_active %}status-ok{% else %}status-warn{% endif %}">{{ 'Active' if course.is_active else 'Inactive' }}</span></td>
+                <td>
+                  <div class="actions-row">
+                    <a class="text-action" href="/admin/courses?edit={{ course.id }}">Edit</a>
+                    <form action="/admin/courses/{{ course.id }}/delete" method="post">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                      <button class="text-action danger-action" type="submit" data-confirm="Delete this course?">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% else %}
+              <tr><td colspan="4">No courses found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </div>
+{% endblock %}
+

@@ -1,0 +1,38 @@
+from app.models.base import Base
+from app.models.entities import (
+    ActivityLog,
+    Announcement,
+    Assignment,
+    Course,
+    Enrollment,
+    EnrollmentStatus,
+    Inquiry,
+    InquiryType,
+    Material,
+    Meeting,
+    StudentProfile,
+    Submission,
+    TeacherProfile,
+    User,
+    UserRole,
+)
+
+__all__ = [
+    "ActivityLog",
+    "Announcement",
+    "Assignment",
+    "Base",
+    "Course",
+    "Enrollment",
+    "EnrollmentStatus",
+    "Inquiry",
+    "InquiryType",
+    "Material",
+    "Meeting",
+    "StudentProfile",
+    "Submission",
+    "TeacherProfile",
+    "User",
+    "UserRole",
+]
+

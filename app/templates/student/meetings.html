@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="student-page-heading">
+    <div>
+      <p class="eyebrow">Meetings</p>
+      <h2>{{ total }} live sessions</h2>
+      <p>Join scheduled mentor sessions and keep your class rhythm easy to follow.</p>
+    </div>
+  </section>
+
+  <article class="card table-card student-table-card">
+    <div class="section-heading left compact">
+      <p class="eyebrow">Meetings</p>
+      <h2>{{ total }} sessions</h2>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Title</th><th>Course</th><th>Scheduled</th><th>Join</th></tr></thead>
+        <tbody>
+          {% for meeting in meetings %}
+            <tr>
+              <td>{{ meeting.title }}</td>
+              <td>{{ meeting.enrollment.course.title }}</td>
+              <td>{{ meeting.scheduled_at|datetime }}</td>
+              <td><a class="button button-primary button-small" href="{{ meeting.meeting_url }}" target="_blank" rel="noreferrer"><i data-lucide="video"></i>Join Meeting</a></td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4">No meetings available yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+{% endblock %}

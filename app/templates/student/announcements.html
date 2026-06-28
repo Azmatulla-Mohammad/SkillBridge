@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="student-page-heading">
+    <div>
+      <p class="eyebrow">Announcements</p>
+      <h2>{{ total }} latest updates</h2>
+      <p>Stay aligned with mentor notes, class updates, and course reminders.</p>
+    </div>
+  </section>
+
+  <div class="student-announcement-grid">
+    {% for announcement in announcements %}
+      <article class="card student-announcement-card">
+        <div class="student-row-icon"><i data-lucide="megaphone"></i></div>
+        <div>
+          <p class="eyebrow">{{ announcement.course.title }}</p>
+          <h3>{{ announcement.title }}</h3>
+          <span>{{ announcement.created_at|datetime }}</span>
+          <p>{{ announcement.content }}</p>
+        </div>
+      </article>
+    {% else %}
+      <article class="card student-empty-card">
+        <i data-lucide="bell"></i>
+        <h3>No announcements yet.</h3>
+        <p>Course updates and mentor reminders will appear here.</p>
+      </article>
+    {% endfor %}
+  </div>
+{% endblock %}

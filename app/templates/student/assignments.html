@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="student-page-heading">
+    <div>
+      <p class="eyebrow">Assignments</p>
+      <h2>{{ total }} practice tasks</h2>
+      <p>Submit your work, track reviews, and keep momentum between live sessions.</p>
+    </div>
+  </section>
+
+  <div class="student-assignment-stack">
+    {% for assignment in assignments %}
+      {% set submission = submission_map.get(assignment.id) %}
+      <article class="card student-assignment-card">
+        <div class="student-assignment-main">
+          <div class="student-row-icon"><i data-lucide="clipboard-check"></i></div>
+          <div>
+            <p class="eyebrow">{{ assignment.course.title }}</p>
+            <h3>{{ assignment.title }}</h3>
+            <p>{{ assignment.description }}</p>
+            <div class="student-assignment-meta">
+              <span><i data-lucide="calendar-clock"></i>{{ assignment.due_at|datetime }}</span>
+              <span><i data-lucide="target"></i>Max {{ assignment.max_score }}</span>
+              {% if submission %}
+                <span class="status status-ok">Submitted</span>
+              {% else %}
+                <span class="status status-warn">Pending</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="student-assignment-actions">
+          {% if assignment.attachment_url %}
+            <a class="button button-secondary" href="{{ assignment.attachment_url }}" target="_blank" rel="noreferrer"><i data-lucide="paperclip"></i>View Attachment</a>
+          {% endif %}
+          {% if submission %}
+            <span class="pill">Submitted: {{ submission.submitted_at|datetime }}</span>
+          {% endif %}
+        </div>
+
+        <form action="/student/assignments/{{ assignment.id }}/submit" method="post" enctype="multipart/form-data" class="student-submit-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <label><span>Upload Assignment</span><input type="file" name="file" required></label>
+          <button type="submit" class="button button-primary">{{ 'Resubmit Assignment' if submission else 'Submit Assignment' }} <i data-lucide="upload-cloud"></i></button>
+        </form>
+      </article>
+    {% else %}
+      <article class="card student-empty-card">
+        <i data-lucide="clipboard-list"></i>
+        <h3>No assignments available yet.</h3>
+        <p>Your practice tasks will appear here when your mentor posts them.</p>
+      </article>
+    {% endfor %}
+  </div>
+{% endblock %}

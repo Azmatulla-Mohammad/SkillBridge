@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block content %}
+  <form method="get" class="card filter-bar">
+    <input type="text" name="search" value="{{ search }}" placeholder="Search assignments">
+    <select name="teacher_id">
+      <option value="">Any teacher</option>
+      {% for teacher in teachers %}
+        <option value="{{ teacher.id }}" {% if teacher_filter == teacher.id %}selected{% endif %}>{{ teacher.full_name }}</option>
+      {% endfor %}
+    </select>
+    <select name="course_id">
+      <option value="">Any course</option>
+      {% for course in courses %}
+        <option value="{{ course.id }}" {% if course_filter == course.id %}selected{% endif %}>{{ course.title }}</option>
+      {% endfor %}
+    </select>
+    <button class="button button-secondary" type="submit">Filter</button>
+  </form>
+
+  <div class="grid grid-2">
+    <article class="card">
+      <div class="section-heading left compact">
+        <p class="eyebrow">{{ 'Update Assignment' if edit_assignment else 'Create Assignment' }}</p>
+        <h2>Manage course work centrally</h2>
+      </div>
+      <form action="{% if edit_assignment %}/admin/assignments/{{ edit_assignment.id }}/update{% else %}/admin/assignments{% endif %}" method="post" enctype="multipart/form-data" class="stack">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label><span>Title</span><input type="text" name="title" value="{{ edit_assignment.title if edit_assignment else '' }}" required></label>
+        <label><span>Description</span><textarea name="description" rows="5" required>{{ edit_assignment.description if edit_assignment else '' }}</textarea></label>
+        <label><span>Course</span><select name="course_id" required>{% for course in courses %}<option value="{{ course.id }}" {% if edit_assignment and edit_assignment.course_id == course.id %}selected{% endif %}>{{ course.title }}</option>{% endfor %}</select></label>
+        <label><span>Teacher</span><select name="teacher_id" required>{% for teacher in teachers %}<option value="{{ teacher.id }}" {% if edit_assignment and edit_assignment.teacher_id == teacher.id %}selected{% endif %}>{{ teacher.full_name }}</option>{% endfor %}</select></label>
+        <label><span>Due At</span><input type="datetime-local" name="due_at" value="{{ edit_assignment.due_at.strftime('%Y-%m-%dT%H:%M') if edit_assignment and edit_assignment.due_at else '' }}"></label>
+        <label><span>Max Score</span><input type="number" name="max_score" value="{{ edit_assignment.max_score if edit_assignment else 100 }}" min="1"></label>
+        <label><span>Attachment</span><input type="file" name="attachment"></label>
+        <div class="button-row">
+          <button type="submit" class="button button-primary">{{ 'Save Changes' if edit_assignment else 'Create Assignment' }}</button>
+          {% if edit_assignment %}
+            <a class="button button-secondary" href="/admin/assignments">Cancel Edit</a>
+          {% endif %}
+        </div>
+      </form>
+    </article>
+
+    <article class="card table-card">
+      <div class="section-heading left compact">
+        <p class="eyebrow">Assignments</p>
+        <h2>{{ total }} records</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Course</th>
+              <th>Teacher</th>
+              <th>Due</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for assignment in assignments %}
+              <tr>
+                <td>
+                  <strong>{{ assignment.title }}</strong>
+                  {% if assignment.attachment_url %}<div><a class="inline-link" href="{{ assignment.attachment_url }}" target="_blank" rel="noreferrer">Attachment</a></div>{% endif %}
+                </td>
+                <td>{{ assignment.course.title }}</td>
+                <td>{{ assignment.teacher.full_name }}</td>
+                <td>{{ assignment.due_at|datetime }}</td>
+                <td>
+                  <div class="actions-row">
+                    <a class="text-action" href="/admin/assignments?edit={{ assignment.id }}">Edit</a>
+                    <form action="/admin/assignments/{{ assignment.id }}/delete" method="post">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                      <button class="text-action danger-action" type="submit" data-confirm="Delete this assignment?">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% else %}
+              <tr><td colspan="5">No assignments found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </div>
+{% endblock %}
+

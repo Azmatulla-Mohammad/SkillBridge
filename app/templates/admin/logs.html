@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+  <form method="get" class="card filter-bar">
+    <input type="text" name="search" value="{{ search }}" placeholder="Search logs">
+    <button class="button button-secondary" type="submit">Search</button>
+  </form>
+
+  <article class="card table-card">
+    <div class="section-heading left compact">
+      <p class="eyebrow">Audit Trail</p>
+      <h2>{{ total }} activity entries</h2>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>When</th>
+            <th>Action</th>
+            <th>Summary</th>
+            <th>Actor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+            <tr>
+              <td>{{ log.created_at|datetime }}</td>
+              <td>{{ log.action }}</td>
+              <td>{{ log.summary }}</td>
+              <td>{{ log.actor.full_name if log.actor else 'System' }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4">No logs found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+{% endblock %}

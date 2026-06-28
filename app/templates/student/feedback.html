@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="student-page-heading">
+    <div>
+      <p class="eyebrow">Feedback</p>
+      <h2>{{ total }} reviewed submissions</h2>
+      <p>See scores, mentor comments, and review status for your submitted work.</p>
+    </div>
+  </section>
+
+  <article class="card table-card student-table-card">
+    <div class="section-heading left compact">
+      <p class="eyebrow">Feedback</p>
+      <h2>{{ total }} submissions</h2>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Assignment</th><th>Submitted</th><th>Marks</th><th>Feedback</th></tr></thead>
+        <tbody>
+          {% for submission in submissions %}
+            <tr>
+              <td>{{ submission.assignment.title }}</td>
+              <td>{{ submission.submitted_at|datetime }}</td>
+              <td><span class="status {{ 'status-ok' if submission.score is not none else 'status-warn' }}">{{ submission.score if submission.score is not none else 'Pending' }}</span></td>
+              <td>{{ submission.feedback if submission.feedback else 'Awaiting review' }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4">No submissions yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+{% endblock %}

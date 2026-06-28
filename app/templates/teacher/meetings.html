@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="student-page-heading">
+    <div>
+      <p class="eyebrow">Meetings</p>
+      <h2>Schedule class sessions</h2>
+      <p>Create meetings, share join links, and keep your calendar organized.</p>
+    </div>
+  </section>
+
+  <div class="grid grid-2 student-dashboard-grid">
+    <article class="card">
+      <div class="section-heading left compact">
+        <p class="eyebrow">Schedule Meeting</p>
+        <h2>Create a class session</h2>
+      </div>
+      <form action="/teacher/meetings" method="post" class="stack">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label><span>Student Enrollment</span><select name="enrollment_id" required>{% for enrollment in enrollments %}<option value="{{ enrollment.id }}">{{ enrollment.student.full_name }} • {{ enrollment.course.title }}</option>{% endfor %}</select></label>
+        <label><span>Title</span><input type="text" name="title" required></label>
+        <label><span>Google Meet Link</span><input type="url" name="meeting_url" required></label>
+        <label><span>Scheduled At</span><input type="datetime-local" name="scheduled_at" required></label>
+        <label><span>Notes</span><textarea name="notes" rows="4"></textarea></label>
+        <button type="submit" class="button button-primary">Schedule Meeting</button>
+      </form>
+    </article>
+
+    <article class="card table-card student-table-card">
+      <div class="section-heading left compact">
+        <p class="eyebrow">Meeting Queue</p>
+        <h2>{{ total }} classes</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Title</th><th>Student</th><th>When</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% for meeting in meetings %}
+              <tr>
+                <td><a class="inline-link" href="{{ meeting.meeting_url }}" target="_blank" rel="noreferrer">{{ meeting.title }}</a></td>
+                <td>{{ meeting.enrollment.student.full_name }}</td>
+                <td>{{ meeting.scheduled_at|datetime }}</td>
+                <td>
+                  <form action="/teacher/meetings/{{ meeting.id }}/delete" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button class="text-action danger-action" type="submit" data-confirm="Delete this meeting?">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            {% else %}
+              <tr><td colspan="4">No meetings scheduled yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </div>
+{% endblock %}
+
+

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="student-page-heading">
+    <div>
+      <p class="eyebrow">Materials</p>
+      <h2>Share study resources</h2>
+      <p>Upload notes and files and keep your teacher library up-to-date for students.</p>
+    </div>
+  </section>
+
+  <div class="grid grid-2 student-dashboard-grid">
+    <article class="card">
+      <div class="section-heading left compact">
+        <p class="eyebrow">Upload Material</p>
+        <h2>Share notes and files</h2>
+      </div>
+      <form action="/teacher/materials" method="post" enctype="multipart/form-data" class="stack">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label><span>Title</span><input type="text" name="title" required></label>
+        <label><span>Description</span><textarea name="description" rows="4"></textarea></label>
+        <label><span>Course</span><select name="course_id" required>{% for course in courses %}<option value="{{ course.id }}">{{ course.title }}</option>{% endfor %}</select></label>
+        <label><span>File</span><input type="file" name="file" required></label>
+        <button type="submit" class="button button-primary">Upload Material</button>
+      </form>
+    </article>
+
+    <article class="card table-card student-table-card">
+      <div class="section-heading left compact">
+        <p class="eyebrow">Library</p>
+        <h2>{{ total }} materials</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Title</th><th>Course</th><th>File</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% for material in materials %}
+              <tr>
+                <td>{{ material.title }}</td>
+                <td>{{ material.course.title }}</td>
+                <td><a class="inline-link" href="{{ material.file_url }}" target="_blank" rel="noreferrer">{{ material.original_filename }}</a></td>
+                <td>
+                  <form action="/teacher/materials/{{ material.id }}/delete" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button class="text-action danger-action" type="submit" data-confirm="Delete this material?">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            {% else %}
+              <tr><td colspan="4">No materials uploaded yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </div>
+{% endblock %}
+
+

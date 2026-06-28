@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="student-hero-card" style="background: radial-gradient(circle at 78% 28%, rgba(124, 58, 237, 0.32), transparent 18rem), radial-gradient(circle at 12% 18%, rgba(99, 102, 241, 0.22), transparent 14rem), linear-gradient(135deg, #070a26 0%, #10194f 56%, #2b1675 100%);">
+    <div>
+      <p class="eyebrow">Teacher Workspace</p>
+      <h2>Welcome back, {{ current_user.full_name.split(' ')[0] }}.</h2>
+      <p>Manage student progress, review submissions, schedule meetings, and keep learning moving in one organized place.</p>
+      <div class="student-hero-actions">
+        <a class="button button-primary" href="/teacher/assignments"><i data-lucide="clipboard-check"></i>Review Assignments</a>
+        <a class="button button-secondary" href="/teacher/students"><i data-lucide="user-round-search"></i>My Students</a>
+      </div>
+    </div>
+    <div class="student-hero-visual" aria-hidden="true">
+      <div class="learning-device">
+        <div class="device-top"></div>
+        <div class="device-line wide"></div>
+        <div class="device-line"></div>
+        <div class="device-progress"><span style="width: 64%"></span></div>
+      </div>
+      <div class="floating-note note-one"><i data-lucide="calendar-days"></i></div>
+      <div class="floating-note note-two"><i data-lucide="megaphone"></i></div>
+    </div>
+  </section>
+
+  <div class="teacher-metrics-grid">
+    <article class="card teacher-metric-card accent">
+      <span><i data-lucide="users"></i>Students</span>
+      <strong>{{ student_count }}</strong>
+      <p>Active learners in your program</p>
+    </article>
+    <article class="card teacher-metric-card">
+      <span><i data-lucide="clipboard-list"></i>Assignments</span>
+      <strong>{{ assignment_count }}</strong>
+      <p>Tasks and practice items</p>
+    </article>
+    <article class="card teacher-metric-card">
+      <span><i data-lucide="folder-kanban"></i>Materials</span>
+      <strong>{{ material_count }}</strong>
+      <p>Resources shared with students</p>
+    </article>
+  </div>
+
+  <div class="grid grid-2 student-dashboard-grid">
+    <article class="card table-card student-table-card">
+      <div class="section-heading left compact">
+        <p class="eyebrow">My Students</p>
+        <h2>Progress overview</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Student</th><th>Course</th><th>Progress</th><th>Meet Link</th></tr></thead>
+          <tbody>
+            {% for enrollment in enrollments %}
+              <tr>
+                <td>{{ enrollment.student.full_name }}</td>
+                <td>{{ enrollment.course.title }}</td>
+                <td>{{ enrollment.progress_percent }}%</td>
+                <td>{% if enrollment.meeting_link %}<a class="inline-link" href="{{ enrollment.meeting_link }}" target="_blank" rel="noreferrer">Open</a>{% else %}<span class="muted">Not set</span>{% endif %}</td>
+              </tr>
+            {% else %}
+              <tr><td colspan="4">No students assigned yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="section-heading left compact">
+        <p class="eyebrow">Upcoming Meetings</p>
+        <h2>Class calendar</h2>
+      </div>
+      <div class="stack">
+        {% for meeting in upcoming_meetings %}
+          <div class="list-row">
+            <div>
+              <strong>{{ meeting.title }}</strong>
+              <p class="muted">{{ meeting.enrollment.student.full_name }} • {{ meeting.enrollment.course.title }}</p>
+            </div>
+            <span>{{ meeting.scheduled_at|datetime }}</span>
+          </div>
+        {% else %}
+          <p class="muted">No upcoming meetings scheduled.</p>
+        {% endfor %}
+      </div>
+    </article>
+  </div>
+
+  <article class="card table-card student-table-card">
+    <div class="section-heading left compact">
+      <p class="eyebrow">Recent Submissions</p>
+      <h2>Review queue</h2>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Student</th><th>Assignment</th><th>Submitted</th><th>Action</th></tr></thead>
+        <tbody>
+          {% for submission in recent_submissions %}
+            <tr>
+              <td>{{ submission.student.full_name }}</td>
+              <td>{{ submission.assignment.title }}</td>
+              <td>{{ submission.submitted_at|datetime }}</td>
+              <td><a class="inline-link" href="/teacher/submissions/{{ submission.id }}">Review</a></td>
+            </tr>
+          {% else %}
+            <tr><td colspan="4">No submissions yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+{% endblock %}
+
+

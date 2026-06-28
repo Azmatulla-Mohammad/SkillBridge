@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="student-page-heading">
+    <div>
+      <p class="eyebrow">Announcements</p>
+      <h2>Keep students updated</h2>
+      <p>Publish important updates and track your announcement feed.</p>
+    </div>
+  </section>
+
+  <div class="grid grid-2 student-dashboard-grid">
+    <article class="card">
+      <div class="section-heading left compact">
+        <p class="eyebrow">New Announcement</p>
+        <h2>Keep students updated</h2>
+      </div>
+      <form action="/teacher/announcements" method="post" class="stack">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label><span>Course</span><select name="course_id" required>{% for course in courses %}<option value="{{ course.id }}">{{ course.title }}</option>{% endfor %}</select></label>
+        <label><span>Title</span><input type="text" name="title" required></label>
+        <label><span>Content</span><textarea name="content" rows="5" required></textarea></label>
+        <button type="submit" class="button button-primary">Publish Announcement</button>
+      </form>
+    </article>
+
+    <article class="card table-card student-table-card">
+      <div class="section-heading left compact">
+        <p class="eyebrow">Announcement Feed</p>
+        <h2>{{ total }} posts</h2>
+      </div>
+      <div class="stack">
+        {% for announcement in announcements %}
+          <div class="announcement-card">
+            <div class="button-row space-between">
+              <div>
+                <strong>{{ announcement.title }}</strong>
+                <p class="muted small">{{ announcement.course.title }} • {{ announcement.created_at|datetime }}</p>
+              </div>
+              <form action="/teacher/announcements/{{ announcement.id }}/delete" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button class="text-action danger-action" type="submit" data-confirm="Delete this announcement?">Delete</button>
+              </form>
+            </div>
+            <p class="muted">{{ announcement.content }}</p>
+          </div>
+        {% else %}
+          <p class="muted">No announcements yet.</p>
+        {% endfor %}
+      </div>
+    </article>
+  </div>
+{% endblock %}
+
+

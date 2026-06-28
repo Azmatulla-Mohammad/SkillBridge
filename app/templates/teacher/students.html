@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="student-page-heading">
+    <div>
+      <p class="eyebrow">My Students</p>
+      <h2>Enrollments and progress</h2>
+      <p>Search learners, track their course progress, and open meeting links when available.</p>
+    </div>
+  </section>
+
+  <form method="get" class="card filter-bar">
+    <input type="text" name="search" value="{{ search }}" placeholder="Search student">
+    <button class="button button-secondary" type="submit">Search</button>
+  </form>
+
+  <article class="card table-card student-table-card">
+    <div class="section-heading left compact">
+      <p class="eyebrow">My Students</p>
+      <h2>{{ total }} enrollments</h2>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Student</th><th>Course</th><th>Progress</th><th>Meeting Link</th><th>Status</th></tr></thead>
+        <tbody>
+          {% for enrollment in enrollments %}
+            <tr>
+              <td>
+                <strong>{{ enrollment.student.full_name }}</strong>
+                <div class="muted">{{ enrollment.student.email }}</div>
+              </td>
+              <td>{{ enrollment.course.title }}</td>
+              <td>{{ enrollment.progress_percent }}%</td>
+              <td>{% if enrollment.meeting_link %}<a class="inline-link" href="{{ enrollment.meeting_link }}" target="_blank" rel="noreferrer">Join Link</a>{% else %}<span class="muted">Not set</span>{% endif %}</td>
+              <td>{{ enrollment.status.value|title }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5">No students assigned yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </article>
+{% endblock %}
+
+

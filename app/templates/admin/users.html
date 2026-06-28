@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block content %}
+
+  {% if modal_shown and modal_created_user and modal_created_user.temporary_password %}
+    <div class="modal-backdrop" id="created-user-modal-backdrop" style="display:block;" aria-hidden="false"></div>
+    <div class="modal" id="created-user-modal" role="dialog" aria-modal="true" aria-labelledby="created-user-modal-title" style="display:block;">
+      <div class="modal-header">
+        <div>
+          <h3 id="created-user-modal-title">✅ Account Created Successfully</h3>
+          <p class="muted" style="margin:6px 0 0 0;">Use the credentials below to sign in.</p>
+        </div>
+        <button type="button" class="icon-button" id="created-user-modal-close-x" aria-label="Close">✕</button>
+      </div>
+
+      <div class="modal-body stack">
+        <div class="field">
+          <div class="label">Email</div>
+          <div class="value" id="created-user-email">{{ modal_created_user.email }}</div>
+        </div>
+
+        <div class="field">
+          <div class="label">Temporary Password</div>
+          <div class="value" id="created-user-temp-password">{{ modal_created_user.temporary_password }}</div>
+        </div>
+
+        <div class="field">
+          <div class="label">Role</div>
+          <div class="value">{{ modal_created_user.role|title }}</div>
+        </div>
+
+        <div class="button-row">
+          <button type="button" class="button button-primary" id="created-user-copy-credentials">Copy Credentials</button>
+          <a class="button button-secondary" href="#" onclick="event.preventDefault();alert('Email sending is not implemented in this phase.');">Send Email</a>
+          <a class="button button-secondary" href="/admin/users">Create Another</a>
+          <button type="button" class="button button-secondary" id="created-user-modal-close">Close</button>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <form method="get" class="card filter-bar">
+    <input type="text" name="search" value="{{ search }}" placeholder="Search name, email, phone">
+    <select name="role">
+      <option value="">All roles</option>
+      <option value="teacher" {% if role_filter == 'teacher' %}selected{% endif %}>Teachers</option>
+      <option value="student" {% if role_filter == 'student' %}selected{% endif %}>Students</option>
+      <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admins</option>
+    </select>
+    <select name="active">
+      <option value="">Any status</option>
+      <option value="active" {% if active_filter == 'active' %}selected{% endif %}>Active</option>
+      <option value="inactive" {% if active_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+    </select>
+    <button class="button button-secondary" type="submit">Filter</button>
+  </form>
+
+  <div class="grid grid-2">
+    <article class="card">
+      <div class="section-heading left compact">
+        <p class="eyebrow">{{ 'Update User' if edit_user else 'Create User' }}</p>
+        <h2>{{ edit_user.full_name if edit_user else 'Add a teacher, student, or admin' }}</h2>
+      </div>
+      <form action="{% if edit_user %}/admin/users/{{ edit_user.id }}/update{% else %}/admin/users{% endif %}" method="post" class="stack">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label><span>Full Name</span><input type="text" name="full_name" value="{{ edit_user.full_name if edit_user else '' }}" required></label>
+        <label><span>Email</span><input type="email" name="email" value="{{ edit_user.email if edit_user else '' }}" required></label>
+        {% if not edit_user %}
+          <label>
+            <span>Role</span>
+            <select name="role" required>
+              <option value="teacher">Teacher</option>
+              <option value="student">Student</option>
+              <option value="admin">Admin</option>
+            </select>
+          </label>
+        {% else %}
+          <div class="pill">{{ edit_user.role.value|title }}</div>
+        {% endif %}
+        <label><span>Password {% if edit_user %}<small class="muted">Leave blank to keep current password</small>{% endif %}</span><input type="text" name="password"></label>
+        <label><span>Phone</span><input type="text" name="phone" value="{{ edit_user.phone if edit_user else '' }}"></label>
+        <label><span>Bio</span><textarea name="bio" rows="3">{{ edit_user.bio if edit_user else '' }}</textarea></label>
+        <label><span>Teacher Headline</span><input type="text" name="headline" value="{{ edit_user.teacher_profile.headline if edit_user and edit_user.teacher_profile else '' }}"></label>
+        <label><span>Teacher Expertise</span><input type="text" name="expertise" value="{{ edit_user.teacher_profile.expertise if edit_user and edit_user.teacher_profile else '' }}"></label>
+        <label><span>Guardian Name</span><input type="text" name="guardian_name" value="{{ edit_user.student_profile.guardian_name if edit_user and edit_user.student_profile else '' }}"></label>
+        <label><span>Learning Goals</span><textarea name="learning_goals" rows="3">{{ edit_user.student_profile.learning_goals if edit_user and edit_user.student_profile else '' }}</textarea></label>
+        <div class="button-row">
+          <button type="submit" class="button button-primary">{{ 'Save Changes' if edit_user else 'Create User' }}</button>
+          {% if edit_user %}
+            <a class="button button-secondary" href="/admin/users">Cancel Edit</a>
+          {% endif %}
+        </div>
+      </form>
+    </article>
+
+    <article class="card table-card">
+      <div class="section-heading left compact">
+        <p class="eyebrow">Directory</p>
+        <h2>{{ total }} users</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users %}
+              <tr>
+                <td>
+                  <strong>{{ user.full_name }}</strong>
+                  <div class="muted">{{ user.email }}</div>
+                </td>
+                <td>{{ user.role.value|title }}</td>
+                <td><span class="status {% if user.is_active %}status-ok{% else %}status-warn{% endif %}">{{ 'Active' if user.is_active else 'Inactive' }}</span></td>
+                <td>{{ user.created_at|datetime('%d %b %Y') }}</td>
+                <td>
+                  <div class="actions-row">
+                    <a class="text-action" href="/admin/users?edit={{ user.id }}">Edit</a>
+                    <form action="/admin/users/{{ user.id }}/toggle" method="post">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                      <input type="hidden" name="state" value="{{ 'inactive' if user.is_active else 'active' }}">
+                      <button class="text-action" type="submit">{{ 'Deactivate' if user.is_active else 'Activate' }}</button>
+                    </form>
+                    <form action="/admin/users/{{ user.id }}/reset-password" method="post">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                      <button class="text-action" type="submit">Reset Password</button>
+                    </form>
+                    <form action="/admin/users/{{ user.id }}/delete" method="post">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                      <button class="text-action danger-action" type="submit" data-confirm="Delete this user?">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% else %}
+              <tr><td colspan="5">No users found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="muted small">Teachers: {{ role_counts.get('teacher', 0) }} • Students: {{ role_counts.get('student', 0) }} • Admins: {{ role_counts.get('admin', 0) }}</p>
+    </article>
+  </div>
+{% endblock %}
+

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="student-page-heading">
+    <div>
+      <p class="eyebrow">Submission Review</p>
+      <h2>{{ submission.assignment.title }}</h2>
+      <p>Grade the submission and share feedback with the student.</p>
+    </div>
+  </section>
+
+  <div class="grid grid-2 student-dashboard-grid">
+    <article class="card">
+      <div class="section-heading left compact">
+        <p class="eyebrow">Submission Details</p>
+        <h2>{{ submission.assignment.title }}</h2>
+      </div>
+      <div class="stack">
+        <div><strong>Student:</strong> {{ submission.student.full_name }}</div>
+        <div><strong>Course:</strong> {{ submission.assignment.course.title }}</div>
+        <div><strong>Submitted At:</strong> {{ submission.submitted_at|datetime }}</div>
+        <div><strong>File:</strong> <a class="inline-link" href="{{ submission.file_url }}" target="_blank" rel="noreferrer">{{ submission.original_filename }}</a></div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="section-heading left compact">
+        <p class="eyebrow">Review</p>
+        <h2>Grade and respond</h2>
+      </div>
+      <form action="/teacher/submissions/{{ submission.id }}/review" method="post" class="stack">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label><span>Score</span><input type="number" name="score" min="0" max="{{ submission.assignment.max_score }}" value="{{ submission.score if submission.score is not none else '' }}" required></label>
+        <label><span>Feedback</span><textarea name="feedback" rows="6" required>{{ submission.feedback if submission.feedback else '' }}</textarea></label>
+        <button type="submit" class="button button-primary">Save Feedback</button>
+      </form>
+    </article>
+  </div>
+{% endblock %}
+
+
