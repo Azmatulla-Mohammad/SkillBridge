@@ -6,7 +6,8 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
-from app.core.security import generate_random_password, hash_password
+from app.core.security import hash_password
+
 from app.core.utils import slugify
 from app.models import (
     Assignment,
@@ -60,38 +61,34 @@ class AdminService:
                 )
             )
 
-        existing_admin = None
-        if settings.admin_bootstrap_email:
-            existing_admin = self.user_repo.get_by_email(settings.admin_bootstrap_email)
-        else:
-            existing_admin = self.db.scalar(
-                select(User).where(User.role == UserRole.ADMIN).order_by(User.id.asc())
+        existing_admin = self.db.scalar(
+            select(User).where(User.role == UserRole.ADMIN).order_by(User.id.asc())
+        )
+
+        # Idempotent bootstrap:
+        # - If an admin already exists: never change password/email.
+        if existing_admin:
+            logger.info("Default Admin already exists. Skipping bootstrap.")
+            self.db.commit()
+            return
+
+        # Create default admin exactly once when missing.
+        if not settings.default_admin_email or not settings.default_admin_password:
+            raise RuntimeError(
+                "Admin bootstrap required but environment variables DEFAULT_ADMIN_EMAIL and DEFAULT_ADMIN_PASSWORD are not set."
             )
 
-        bootstrap_password = settings.admin_bootstrap_password
-        if not bootstrap_password and settings.is_development and existing_admin:
-            bootstrap_password = generate_random_password()
-            logger.warning(
-                "Temporary development admin bootstrap password generated for %s: %s",
-                existing_admin.email,
-                bootstrap_password,
-            )
-
-        if bootstrap_password:
-            if existing_admin:
-                existing_admin.password_hash = hash_password(bootstrap_password)
-                existing_admin.is_active = True
-            elif settings.admin_bootstrap_email:
-                admin = User(
-                    full_name=settings.admin_bootstrap_name,
-                    email=settings.admin_bootstrap_email.lower().strip(),
-                    password_hash=hash_password(bootstrap_password),
-                    role=UserRole.ADMIN,
-                    is_active=True,
-                )
-                self.user_repo.create(admin)
+        admin = User(
+            full_name=settings.admin_bootstrap_name,
+            email=settings.default_admin_email.lower().strip(),
+            password_hash=hash_password(settings.default_admin_password),
+            role=UserRole.ADMIN,
+            is_active=True,
+        )
+        self.user_repo.create(admin)
 
         self.db.commit()
+
 
     def dashboard(self) -> dict:
         total_students = self.db.scalar(

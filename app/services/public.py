@@ -9,9 +9,11 @@ from app.models import Course, Inquiry, InquiryType, User, UserRole
 from app.repositories.academic import AcademicRepository
 from app.repositories.public import PublicRepository
 from app.services.common import record_activity
+from app.services.inquiry import InquiryService
 
 
 settings = get_settings()
+
 
 
 FAQ_ITEMS = [
@@ -111,17 +113,16 @@ class PublicService:
         message: str,
         course_interest: str | None,
     ) -> Inquiry:
-        inquiry = self.public_repo.create_inquiry(
-            Inquiry(
-                inquiry_type=inquiry_type,
-                name=name.strip(),
-                email=email.lower().strip(),
-                phone=(phone or "").strip() or None,
-                message=message.strip(),
-                course_interest=(course_interest or "").strip() or None,
-                created_at=utcnow(),
-            )
+        inquiry_service = InquiryService(self.db)
+        inquiry = inquiry_service.create_inquiry(
+            inquiry_type=inquiry_type,
+            name=name,
+            email=email,
+            phone=phone,
+            message=message,
+            course_interest=course_interest,
         )
+
         record_activity(
             self.db,
             actor_user_id=None,
@@ -132,3 +133,4 @@ class PublicService:
         )
         self.db.commit()
         return inquiry
+

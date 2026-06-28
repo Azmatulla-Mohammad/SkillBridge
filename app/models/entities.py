@@ -45,7 +45,10 @@ class User(TimestampMixin, Base):
     full_name: Mapped[str] = mapped_column(String(120), index=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(255))
-    role: Mapped[UserRole] = mapped_column(SAEnum(UserRole, name="user_role"), index=True)
+    role: Mapped[UserRole] = mapped_column(
+        SAEnum(UserRole, name="user_role", values_callable=lambda enum: [e.value for e in enum]),
+        index=True,
+    )
     phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
     bio: Mapped[str | None] = mapped_column(Text, nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
@@ -139,7 +142,11 @@ class Enrollment(TimestampMixin, Base):
     teacher_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
     course_id: Mapped[int] = mapped_column(ForeignKey("courses.id", ondelete="RESTRICT"))
     status: Mapped[EnrollmentStatus] = mapped_column(
-        SAEnum(EnrollmentStatus, name="enrollment_status"),
+        SAEnum(
+            EnrollmentStatus,
+            name="enrollment_status",
+            values_callable=lambda enum: [e.value for e in enum],
+        ),
         default=EnrollmentStatus.ACTIVE,
         server_default=EnrollmentStatus.ACTIVE.value,
     )
@@ -256,7 +263,11 @@ class Inquiry(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     inquiry_type: Mapped[InquiryType] = mapped_column(
-        SAEnum(InquiryType, name="inquiry_type"),
+        SAEnum(
+            InquiryType,
+            name="inquiry_type",
+            values_callable=lambda enum: [e.value for e in enum],
+        ),
         default=InquiryType.CONTACT,
         server_default=InquiryType.CONTACT.value,
     )

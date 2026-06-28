@@ -20,7 +20,10 @@ class Settings(BaseSettings):
     secret_key: str = "change-this-in-production"
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 720
-    database_url: str = "sqlite:///./skillbridge.db"
+    # Use DATABASE_URL for PostgreSQL (and any other supported DB).
+    # IMPORTANT: runtime must be driven by env; no SQLite defaults in production.
+    database_url: str | None = None
+
     auto_create_schema: bool = True
     secure_cookies: bool = False
     session_cookie_name: str = "skillbridge_session"
@@ -31,9 +34,15 @@ class Settings(BaseSettings):
     supabase_service_role_key: str | None = None
     supabase_bucket: str = "skillbridge"
     whatsapp_number: str = "919999999999"
+    # Production admin bootstrap (create once)
+    default_admin_email: str | None = None
+    default_admin_password: str | None = None
+
+    # Backwards-compatible legacy config (no longer used for bootstrap defaults)
     admin_bootstrap_email: str | None = None
     admin_bootstrap_password: str | None = None
     admin_bootstrap_name: str = "Platform Admin"
+
     default_course_title: str = "Python Programming"
     default_course_slug: str = "python-programming"
     default_course_description: str = (
@@ -45,7 +54,8 @@ class Settings(BaseSettings):
 
     @property
     def is_sqlite(self) -> bool:
-        return self.database_url.startswith("sqlite")
+        return bool(self.database_url) and self.database_url.startswith("sqlite")
+
 
     @property
     def is_development(self) -> bool:
@@ -76,4 +86,14 @@ class Settings(BaseSettings):
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    return Settings()
+    settings = Settings()
+
+    # Fail fast: database_url must come from DATABASE_URL env var for PG migration.
+    if not settings.database_url:
+        raise RuntimeError(
+            "DATABASE_URL is not set. Set it to a PostgreSQL DSN like: "
+            "postgresql+psycopg://postgres:<password>@localhost:5432/skillbridge"
+        )
+
+    return settings
+
