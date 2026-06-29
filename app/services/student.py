@@ -31,13 +31,64 @@ class StudentService:
         materials = []
         announcements = []
         if course_ids:
-            assignments, _ = self.academic_repo.list_assignments(course_id=course_ids[0], page=1, page_size=10)
-            materials, _ = self.academic_repo.list_materials(course_id=course_ids[0], page=1, page_size=10)
-            announcements, _ = self.academic_repo.list_announcements(course_id=course_ids[0], page=1, page_size=10)
+            assignments, _ = self.academic_repo.list_assignments(
+                course_id=course_ids[0], page=1, page_size=10
+            )
+            materials, _ = self.academic_repo.list_materials(
+                course_id=course_ids[0], page=1, page_size=10
+            )
+            announcements, _ = self.academic_repo.list_announcements(
+                course_id=course_ids[0], page=1, page_size=10
+            )
 
-        meetings, _ = self.academic_repo.list_meetings(student_id=student_id, upcoming_only=True, page=1, page_size=5)
-        submissions, _ = self.academic_repo.list_submissions(student_id=student_id, page=1, page_size=20)
+        meetings, _ = self.academic_repo.list_meetings(
+            student_id=student_id, upcoming_only=True, page=1, page_size=5
+        )
+        submissions, _ = self.academic_repo.list_submissions(
+            student_id=student_id, page=1, page_size=200
+        )
         self.db.commit()
+
+        assignment_ids = {a.id for a in assignments}
+        total_assignments = len(assignments)
+        submitted_assignments = sum(1 for s in submissions if s.assignment_id in assignment_ids)
+        assignments_completed = submitted_assignments
+        assignments_pending = max(0, total_assignments - submitted_assignments)
+
+        if total_assignments == 0:
+            course_completion_percent = 0
+        else:
+            course_completion_percent = int((assignments_completed / total_assignments) * 100)
+
+        reviewed_graded_submissions = [
+            s
+            for s in submissions
+            if s.assignment_id in assignment_ids and s.reviewed_at is not None and s.score is not None
+        ]
+        assignments_reviewed = len(reviewed_graded_submissions)
+
+        if assignments_reviewed == 0:
+            performance_percent = None
+            average_marks = None
+        else:
+            total_normalized = 0.0
+            total_score = 0.0
+            for s in reviewed_graded_submissions:
+                # assignment is loaded by the repository for list_submissions
+                max_score = getattr(s.assignment, "max_score", None)
+                if not max_score:
+                    # Defensive: ignore malformed assignments
+                    continue
+                total_normalized += (s.score / max_score) * 100
+                total_score += s.score
+            # If we ignored all items due to missing max_score, treat as N/A
+            if total_normalized == 0.0 and total_score == 0.0:
+                performance_percent = None
+                average_marks = None
+            else:
+                performance_percent = total_normalized / assignments_reviewed
+                average_marks = int(round(total_score / assignments_reviewed))
+
         return {
             "enrollments": enrollments,
             "assignments": assignments,
@@ -45,7 +96,14 @@ class StudentService:
             "announcements": announcements,
             "meetings": meetings,
             "submissions": submissions,
+            "course_completion_percent": course_completion_percent,
+            "performance_percent": performance_percent,
+            "assignments_completed": assignments_completed,
+            "assignments_pending": assignments_pending,
+            "assignments_reviewed": assignments_reviewed,
+            "average_marks": average_marks,
         }
+
 
     def list_materials(self, student_id: int, *, page: int, page_size: int):
         enrollments = self._enrollments(student_id)

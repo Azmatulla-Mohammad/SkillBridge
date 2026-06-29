@@ -43,31 +43,82 @@
   <div class="grid grid-2 student-dashboard-grid">
     <article class="card student-panel">
       <div class="section-heading left compact">
-        <p class="eyebrow">My Progress</p>
-        <h2>Current enrollments</h2>
+        <p class="eyebrow">Course Completion</p>
+        <h2>Progress made</h2>
       </div>
-      <div class="student-list">
-        {% for enrollment in enrollments %}
-          <div class="student-progress-row">
-            <div>
-              <strong>{{ enrollment.course.title }}</strong>
-              <p>{{ enrollment.teacher.full_name }}</p>
-              <div class="student-progress-bar"><span style="width: {{ enrollment.progress_percent }}%"></span></div>
-            </div>
-            <span>{{ enrollment.progress_percent }}%</span>
-          </div>
-        {% else %}
-          <div class="student-empty-state"><i data-lucide="book-open"></i><p>No course assigned yet.</p></div>
-        {% endfor %}
+
+      <div class="student-metric-large">
+        <div class="student-metric-value">
+          <strong>{{ course_completion_percent }}%</strong>
+        </div>
+        <p class="muted">Completed: {{ assignments_completed }} • Pending: {{ assignments_pending }}</p>
+      </div>
+
+      <div class="student-divider"></div>
+
+      <div class="student-metric-small-grid">
+        <div>
+          <p class="muted small">Reviewed</p>
+          <strong>{{ assignments_reviewed }}</strong>
+        </div>
+        <div>
+          <p class="muted small">Average Marks</p>
+          <strong>
+            {% if average_marks is not none %}
+              {{ average_marks }} / 100
+            {% else %}
+              N/A
+            {% endif %}
+          </strong>
+        </div>
       </div>
     </article>
 
     <article class="card student-panel">
       <div class="section-heading left compact">
-        <p class="eyebrow">Upcoming Classes</p>
-        <h2>Meeting schedule</h2>
+        <p class="eyebrow">Performance</p>
+        <h2>Academic results</h2>
       </div>
+
+      <div class="student-metric-large">
+        <div class="student-metric-value">
+          {% if performance_percent is not none %}
+            <strong>{{ performance_percent | round(0, 'common') }}%</strong>
+          {% else %}
+            <strong>N/A</strong>
+          {% endif %}
+        </div>
+
+        {% if performance_percent is not none %}
+          <div class="performance-badge">
+            {% set p = performance_percent | float %}
+            {% if 90 <= p <= 100 %}
+              <span>Expert 🟢</span>
+            {% elif 80 <= p <= 89 %}
+              <span>Excellent 🔵</span>
+            {% elif 70 <= p <= 79 %}
+              <span>Good 🟡</span>
+            {% elif 60 <= p <= 69 %}
+              <span>Average 🟠</span>
+            {% else %}
+              <span>Needs Improvement 🔴</span>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        <p class="muted">Based on reviewed + graded assignments only</p>
+      </div>
+
+      <div class="student-divider"></div>
+
       <div class="student-list">
+        <div class="student-progress-row">
+          <div>
+            <strong>Upcoming Classes</strong>
+            <p class="muted small">Meeting schedule</p>
+          </div>
+        </div>
+
         {% for meeting in meetings %}
           <div class="student-schedule-row">
             <span class="student-row-icon"><i data-lucide="video"></i></span>
@@ -83,6 +134,7 @@
       </div>
     </article>
   </div>
+
 
   <div class="grid grid-2 student-dashboard-grid">
     <article class="card table-card student-table-card">
