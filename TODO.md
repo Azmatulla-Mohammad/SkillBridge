@@ -1,23 +1,24 @@
-# TODO - Task 1: Permanent Admin Login (Production Ready)
+# TODO - Phase 3.1: Supabase Storage Migration
 
-## Plan Summary
-- Remove random/dev admin password generation from startup bootstrap.
-- Add production env vars: DEFAULT_ADMIN_EMAIL and DEFAULT_ADMIN_PASSWORD.
-- Make AdminService.bootstrap_defaults idempotent: if admin exists, do nothing.
-- If admin missing, create admin with hashed DEFAULT_ADMIN_PASSWORD.
-- Preserve existing password reset feature and auth architecture.
+- [ ] Update `app/core/storage.py` to implement required storage abstraction:
+  - [ ] Implement `upload_file(file_bytes, destination_path, content_type)`
+  - [ ] Implement `download_url(path)`
+  - [ ] Implement `delete_file(path)`
+  - [ ] Implement `exists(path)`
+  - [ ] Use official `supabase-py` client when env config exists
+  - [ ] Auto-fallback to existing local storage implementation when Supabase config is missing
+  - [ ] Enforce validation rules (20MB max, allowed extensions) and return friendly messages
+  - [ ] Never expose Supabase exceptions to users; log failures
+  - [ ] Ensure object path conventions supported by callers (materials/..., assignments/..., submissions/..., avatars/...)
+  - [ ] Keep backward compatibility for existing `SupabaseStorageService().upload_file(UploadFile, folder, owner_id=...)`
 
-## Steps
-- [ ] Update app/core/config.py to add DEFAULT_ADMIN_EMAIL and DEFAULT_ADMIN_PASSWORD settings.
-- [ ] Update app/services/admin.py bootstrap_defaults:
-  - [ ] Check admin existence deterministically by DEFAULT_ADMIN_EMAIL.
-  - [ ] If exists: log 'Default Admin already exists.' and return without changing password.
-  - [ ] If missing: require DEFAULT_ADMIN_EMAIL and DEFAULT_ADMIN_PASSWORD; create admin user with hashed DEFAULT_ADMIN_PASSWORD.
-  - [ ] Remove generate_random_password usage from bootstrap.
-- [x] Verify no remaining bootstrap randomness/password logging.
+- [ ] Add missing dependency to `requirements.txt` if `supabase` is not installed.
 
+- [ ] Update all upload call sites to pass correct destination paths under the bucket structure.
 
-- [x] Run python -m compileall app
-- [x] Run uvicorn app.main:app --reload and validate first/second/third startup behavior.
+- [ ] Replace any remaining direct writes to `app/static/uploads` with storage abstraction calls (if any are found).
 
+- [ ] Run `python -m compileall app`.
+
+- [ ] Produce PASS/FAIL report + manual testing checklist.
 
