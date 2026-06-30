@@ -232,6 +232,7 @@ def practice_lab_home(
 def practice_lab_topic_page(
     request: Request,
     topic_id: int,
+    question_id: int | None = None,
     db: Session = Depends(get_db),
     current_user=Depends(require_web_user(UserRole.STUDENT)),
 ):
@@ -244,11 +245,20 @@ def practice_lab_topic_page(
 
         return RedirectResponse(url="/student/practice-lab", status_code=303)
 
-    question = service.get_first_question(topic_id=topic_id)
-    if not question:
+    questions = service.list_questions(topic_id=topic_id, student_id=current_user.id)
+    if not questions:
         from fastapi.responses import RedirectResponse
 
         return RedirectResponse(url="/student/practice-lab", status_code=303)
+
+    question = questions[0]
+    if question_id is not None:
+        question = next((item for item in questions if item["id"] == question_id), questions[0])
+
+    active_question_index = questions.index(question) + 1
+    question_count = len(questions)
+    completed_count = sum(1 for item in questions if item["completed"])
+    progress_percentage = int((active_question_index / question_count) * 100) if question_count else 0
 
     return render_template(
         request,
@@ -257,5 +267,9 @@ def practice_lab_topic_page(
         current_user=current_user,
         topic=topic,
         question=question,
+        questions=questions,
+        active_question_index=active_question_index,
+        question_count=question_count,
+        completed_count=completed_count,
+        progress_percentage=progress_percentage,
     )
-

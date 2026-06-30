@@ -1,74 +1,138 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <div class="student-page-heading">
-    <p class="eyebrow">Practice Lab</p>
-    <h2>{{ topic.topic_name }}</h2>
-    <p>One question at a time. Run Code to test your solution.</p>
+  {% set name_parts = current_user.full_name.split() %}
+  {% set initials = ((name_parts[0][0] if name_parts else "") ~ (name_parts[1][0] if name_parts|length > 1 else ""))|upper %}
 
-  </div>
-
-  <div class="grid grid-2">
-    <article class="card student-panel">
-      <div class="section-heading left compact">
-        <p class="eyebrow">Question</p>
-        <h2>{{ question.title }}</h2>
-      </div>
-
-      <p style="margin-top: 0.75rem;" class="muted">Difficulty: {{ question.difficulty }}</p>
-      <div style="margin-top: 1rem;">
-        <p>{{ question.description }}</p>
-      </div>
-
-      <div style="margin-top: 1.5rem;">
-        <label class="checkbox" style="padding-top: 0;">
-          <input type="checkbox" checked disabled />
-          <span>Starter code (read-only)</span>
-        </label>
-
-        <div style="margin-top: 0.7rem;">
-          <textarea
-            disabled
-            style="min-height: 180px; resize: vertical;"
-            class="form-control"
-          >{{ question.starter_code }}</textarea>
+  <div class="practice-lab-topic-shell">
+    <header class="practice-lab-top">
+      <div class="practice-lab-heading">
+        <span class="practice-lab-heading-icon"><i data-lucide="file-code-2"></i></span>
+        <div>
+          <p class="eyebrow">Practice Lab</p>
+          <h2>{{ topic.topic_name }}</h2>
+          <p>Sharpen your coding skills one question at a time.</p>
         </div>
       </div>
-    </article>
-
-    <article class="card student-panel">
-      <div class="section-heading left compact">
-        <p class="eyebrow">Code Editor</p>
-        <h2>Practice Question</h2>
-      </div>
-
-      <div style="margin-top: 1rem;">
-        <button id="practice_lab_run_btn" class="button button-secondary" type="button">Run Code</button>
-      </div>
-
-      <div
-        id="practice_lab_editor_host"
-        style="margin-top: 1rem;"
-        class="inset-card"
-      >
-        <div
-          id="practice_lab_editor_root"
-          data-question-id="{{ question.id }}"
-          data-starter-code='{{ question.starter_code | replace("'", "&#39;") }}'
-        >
-          <div
-            id="practice_lab_editor"
-            style="height: 450px; min-height: 450px; resize: vertical; overflow: auto;"
-          ></div>
+      <div class="practice-lab-user">
+        <div>
+          <strong>{{ current_user.full_name }}</strong>
+          <span>{{ current_user.email }}</span>
         </div>
+        <span class="practice-lab-avatar">{{ initials or "SB" }}</span>
       </div>
+    </header>
 
-      <div style="margin-top: 1rem;" class="inset-card" >
-        <p class="eyebrow" style="color: inherit; margin-bottom: 0.5rem;">Output</p>
-        <pre id="practice_lab_output" style="margin: 0; white-space: pre-wrap;">Run your code to see output.</pre>
-      </div>
-    </article>
+    <div class="practice-lab-workspace">
+      <aside class="practice-lab-left">
+        <div class="card practice-lab-side-card">
+          <a class="practice-lab-back" href="/student/practice-lab">
+            <i data-lucide="arrow-left"></i>
+            Back to Questions
+          </a>
+
+          <div class="practice-lab-progress-block">
+            <div class="practice-lab-progress-head">
+              <h3>Questions</h3>
+              <span>{{ active_question_index }} / {{ question_count }}</span>
+            </div>
+            <div class="practice-lab-progress" aria-label="Question progress">
+              <span style="width: {{ progress_percentage }}%"></span>
+            </div>
+          </div>
+
+          <nav class="practice-lab-question-list" aria-label="Practice questions">
+            {% for item in questions %}
+              <a
+                class="practice-lab-question-item {% if item.id == question.id %}active{% endif %}"
+                href="/student/practice-lab/topic/{{ topic.id }}?question_id={{ item.id }}"
+              >
+                <span class="practice-lab-question-number">{{ loop.index }}</span>
+                <span class="practice-lab-question-title">{{ item.title }}</span>
+                <span class="practice-lab-question-status" aria-hidden="true">
+                  {% if item.completed or item.id == question.id %}
+                    <i data-lucide="check"></i>
+                  {% endif %}
+                </span>
+              </a>
+            {% endfor %}
+          </nav>
+        </div>
+
+        <div class="practice-lab-tip-card">
+          <div class="practice-lab-tips-header">
+            <i data-lucide="lightbulb"></i>
+            <span>Tips</span>
+          </div>
+          <p>Read the problem carefully and think before you code.</p>
+        </div>
+      </aside>
+
+      <section class="practice-lab-right">
+        <article class="card practice-lab-main-card">
+          <div class="practice-lab-question-head">
+            <div>
+              <p class="eyebrow">Question</p>
+              <h2 class="practice-lab-title">{{ question.title }}</h2>
+              <p class="practice-lab-description">
+                {{ question.description | e | replace("\n", "<br>") | safe }}
+              </p>
+              <span class="practice-lab-difficulty">Difficulty: {{ question.difficulty }}</span>
+            </div>
+            <button class="button practice-lab-hint-button" type="button" disabled>
+              <i data-lucide="circle-help"></i>
+              View Hints
+            </button>
+          </div>
+
+          <div class="practice-lab-editor-card">
+            <div class="practice-lab-editor-topbar">
+              <h3>Code Editor</h3>
+              <div class="practice-lab-editor-tools">
+                <button class="practice-lab-language" type="button" disabled>
+                  <i data-lucide="square-terminal"></i>
+                  Python 3
+                  <i data-lucide="chevron-down"></i>
+                </button>
+                <button class="practice-lab-icon-button" type="button" aria-label="Fullscreen editor" title="Fullscreen" disabled>
+                  <i data-lucide="maximize-2"></i>
+                </button>
+              </div>
+            </div>
+
+            <div id="practice_lab_editor_host" class="practice-lab-editor-host">
+              <div
+                id="practice_lab_editor_root"
+                data-question-id="{{ question.id }}"
+                data-starter-code='{{ question.starter_code | replace("'", "&#39;") }}'
+              >
+                <div id="practice_lab_editor" style="height: 360px; min-height: 320px; resize: vertical; overflow: auto;"></div>
+              </div>
+            </div>
+
+            <div class="practice-lab-buttons">
+              <button id="practice_lab_reset_btn" class="button button-secondary" type="button">
+                <i data-lucide="rotate-ccw"></i>
+                Reset Code
+              </button>
+              <button id="practice_lab_run_btn" class="button button-primary" type="button">
+                <i data-lucide="send"></i>
+                Submit Code
+              </button>
+            </div>
+          </div>
+
+          <div class="practice-lab-output-card">
+            <h3>Output</h3>
+            <pre id="practice_lab_output" class="practice-lab-output-pre">Run your code to see output.</pre>
+            <div class="practice-lab-output-meta">
+              <span>exit code: <strong id="practice_lab_exit_code">-</strong></span>
+              <span>Execution time: <strong id="practice_lab_execution_time">-</strong></span>
+            </div>
+            <pre id="practice_lab_errors" class="practice-lab-errors-pre"></pre>
+          </div>
+        </article>
+      </section>
+    </div>
   </div>
-
 {% endblock %}
-

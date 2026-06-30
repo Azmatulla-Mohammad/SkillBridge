@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ request.url_for('static', path='css/app.css') }}">
   </head>
-  <body class="{% if current_user %}dashboard-body {{ current_user.role.value }}-portal{% else %}marketing-body{% if active_path == '/login' %} login-body{% endif %}{% endif %}">
+  <body class="{% if current_user %}dashboard-body {{ current_user.role.value }}-portal{% if active_path.startswith('/student/practice-lab/topic') %} practice-lab-topic-page{% endif %}{% else %}marketing-body{% if active_path == '/login' %} login-body{% endif %}{% endif %}">
     {% if flashes %}
       <div class="flash-stack">
         {% for flash in flashes %}
@@ -47,11 +47,11 @@
               <a class="{% if active_path.startswith('/student/course') %}active{% endif %}" href="/student/course"><i data-lucide="book-marked"></i>My Course</a>
               <a class="{% if active_path.startswith('/student/materials') %}active{% endif %}" href="/student/materials"><i data-lucide="library"></i>Materials</a>
               <a class="{% if active_path.startswith('/student/assignments') %}active{% endif %}" href="/student/assignments"><i data-lucide="file-check-2"></i>Assignments</a>
-              <a class="{% if active_path.startswith('/student/feedback') %}active{% endif %}" href="/student/feedback"><i data-lucide="message-square-text"></i>Feedback</a>
+              <a class="{% if active_path.startswith('/student/practice-lab') %}active{% endif %}" href="/student/practice-lab"><i data-lucide="code"></i>Practice Lab</a>
               <a class="{% if active_path.startswith('/student/meetings') %}active{% endif %}" href="/student/meetings"><i data-lucide="video"></i>Meetings</a>
+              <a class="{% if active_path.startswith('/student/feedback') %}active{% endif %}" href="/student/feedback"><i data-lucide="message-square-text"></i>Feedback</a>
               <a class="{% if active_path.startswith('/student/announcements') %}active{% endif %}" href="/student/announcements"><i data-lucide="bell"></i>Announcements</a>
               <a class="{% if active_path.startswith('/student/profile') %}active{% endif %}" href="/student/profile"><i data-lucide="circle-user-round"></i>Profile</a>
-              <a class="{% if active_path.startswith('/student/practice-lab') %}active{% endif %}" href="/student/practice-lab"><i data-lucide="code"></i>Practice Lab</a>
             {% endif %}
           </nav>
 

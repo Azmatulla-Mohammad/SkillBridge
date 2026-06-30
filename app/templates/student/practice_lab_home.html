@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <div class="student-page-heading">
+  <div class="student-page-heading practice-lab-home-heading">
     <p class="eyebrow">Practice Lab</p>
     <h2>Python Topics</h2>
     <p>Practice step-by-step. Pick a topic to view a question.</p>
   </div>
 
-  <div class="student-assignment-stack">
+  <div class="student-assignment-stack practice-lab-home-stack">
     {% for topic in topics %}
       <article class="card student-assignment-card">
         <div class="student-assignment-main">

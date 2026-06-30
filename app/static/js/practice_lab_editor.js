@@ -176,17 +176,53 @@
 
   function wireRunButton({ root, editorRef, outputPanel }) {
     const runBtn = document.getElementById("practice_lab_run_btn");
+    const resetBtn = document.getElementById("practice_lab_reset_btn");
+
+    const execTimeEl = document.getElementById("practice_lab_execution_time");
+    const exitCodeEl = document.getElementById("practice_lab_exit_code");
+    const errorsEl = document.getElementById("practice_lab_errors");
+
+    function safeSetText(el, value) {
+      if (!el) return;
+      el.textContent = value === undefined || value === null ? "-" : String(value);
+    }
+
+    function formatExecutionTime(value) {
+      const numeric = Number(value);
+      if (!Number.isFinite(numeric)) return "-";
+      return `${numeric.toFixed(3)}s`;
+    }
 
     if (!runBtn || !outputPanel) return;
 
     // Ensure correct visual state: enable the button only when editor is ready.
-    // Template may initially disable it.
     runBtn.removeAttribute("disabled");
     runBtn.classList.remove("button-secondary");
     runBtn.classList.add("button-primary");
 
+    safeSetText(execTimeEl, "-");
+    safeSetText(exitCodeEl, "-");
+    if (errorsEl) errorsEl.textContent = "";
+    outputPanel.textContent = "Run your code to see output.";
+
+    if (resetBtn) {
+      resetBtn.addEventListener("click", () => {
+        const questionId = root.dataset.questionId;
+        try {
+          window.localStorage.removeItem(`practice_lab_${questionId}`);
+        } catch (_) {
+          // ignore
+        }
+        window.location.reload();
+      });
+    }
+
     runBtn.addEventListener("click", async () => {
       outputPanel.textContent = "Running...";
+      safeSetText(execTimeEl, "-");
+      safeSetText(exitCodeEl, "-");
+      if (errorsEl) errorsEl.textContent = "";
+
 
       try {
         const questionId = root.dataset.questionId;
@@ -210,6 +246,9 @@
           const stderr = data.stderr ? String(data.stderr) : "";
           const msg = stderr || data.stderr || data.stdout || `Request failed (${resp.status})`;
           outputPanel.textContent = msg;
+          safeSetText(exitCodeEl, data.exit_code);
+          safeSetText(execTimeEl, formatExecutionTime(data.execution_time));
+          if (errorsEl) errorsEl.textContent = stderr;
           return;
         }
 
@@ -224,10 +263,13 @@
           out += stderr;
         }
         if (!out) out = "(no output)";
-        out += `\n\nexit_code: ${exitCode}`;
         outputPanel.textContent = out;
+        safeSetText(exitCodeEl, exitCode);
+        safeSetText(execTimeEl, formatExecutionTime(data.execution_time));
+        if (errorsEl) errorsEl.textContent = stderr;
       } catch (err) {
         outputPanel.textContent = `Execution error: ${err}`;
+        if (errorsEl) errorsEl.textContent = String(err);
       }
     });
   }

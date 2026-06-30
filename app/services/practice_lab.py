@@ -11,7 +11,42 @@ from app.models import PracticeQuestion, PracticeTopic, StudentPracticeProgress,
 
 
 DEFAULT_PYTHON_TOPICS: list[dict[str, Any]] = [
-    {"topic_name": "Python Basics", "questions": [{"title": "Print Hello World", "description": "Write a Python program that prints:\n\nHello World", "difficulty": "Easy", "starter_code": ""}]},
+    {
+        "topic_name": "Python Basics",
+        "questions": [
+            {
+                "title": "Hello World",
+                "description": "Write a Python program that prints: Hello World",
+                "difficulty": "Easy",
+                "starter_code": 'print("Hello World")',
+                "expected_output": "Hello World\n",
+            },
+            {
+                "title": "Add Two Numbers",
+                "description": "Write a Python program that adds two numbers and prints the result.",
+                "difficulty": "Easy",
+                "starter_code": "# Write your solution here\n",
+            },
+            {
+                "title": "Even or Odd",
+                "description": "Write a Python program that checks whether a number is even or odd.",
+                "difficulty": "Easy",
+                "starter_code": "# Write your solution here\n",
+            },
+            {
+                "title": "Factorial of a Number",
+                "description": "Write a Python program that prints the factorial of a number.",
+                "difficulty": "Easy",
+                "starter_code": "# Write your solution here\n",
+            },
+            {
+                "title": "Sum of Natural Numbers",
+                "description": "Write a Python program that prints the sum of the first n natural numbers.",
+                "difficulty": "Easy",
+                "starter_code": "# Write your solution here\n",
+            },
+        ],
+    },
     {"topic_name": "Variables", "questions": [{"title": "Variables 101", "description": "Create variables and print them.", "difficulty": "Easy", "starter_code": ""}]},
     {"topic_name": "Data Types", "questions": [{"title": "Identify Types", "description": "Create and print different data types.", "difficulty": "Easy", "starter_code": ""}]},
     {"topic_name": "Operators", "questions": [{"title": "Arithmetic", "description": "Use arithmetic operators to compute and print results.", "difficulty": "Easy", "starter_code": ""}]},
@@ -41,30 +76,93 @@ class PracticeLabService:
         self.db = db
 
     def ensure_seed_data(self) -> None:
-        existing_count = self.db.scalar(select(func.count(PracticeTopic.id))) or 0
-        if existing_count > 0:
-            return
+        changed = False
 
-        for topic_index, topic in enumerate(DEFAULT_PYTHON_TOPICS):
-            topic_obj = PracticeTopic(topic_name=topic["topic_name"])
-            self.db.add(topic_obj)
-            self.db.flush()  # assign id
+        for topic in DEFAULT_PYTHON_TOPICS:
+            topic_obj = self.db.scalar(
+                select(PracticeTopic).where(PracticeTopic.topic_name == topic["topic_name"])
+            )
+            if topic_obj is None:
+                topic_obj = PracticeTopic(topic_name=topic["topic_name"])
+                self.db.add(topic_obj)
+                self.db.flush()
+                changed = True
 
             for q_index, q in enumerate(topic.get("questions", [])):
-                self.db.add(
-                    PracticeQuestion(
-                        topic_id=topic_obj.id,
-                        title=q["title"],
-                        description=q["description"],
-                        difficulty=q.get("difficulty", "Easy"),
-                        starter_code=q.get("starter_code", ""),
-                        expected_output=q.get("expected_output"),
-                        display_order=q_index,
-                        is_active=True,
+                question_obj = self.db.scalar(
+                    select(PracticeQuestion).where(
+                        PracticeQuestion.topic_id == topic_obj.id,
+                        PracticeQuestion.display_order == q_index,
                     )
                 )
+                if question_obj is None:
+                    self.db.add(
+                        PracticeQuestion(
+                            topic_id=topic_obj.id,
+                            title=q["title"],
+                            description=q["description"],
+                            difficulty=q.get("difficulty", "Easy"),
+                            starter_code=q.get("starter_code", ""),
+                            expected_output=q.get("expected_output"),
+                            display_order=q_index,
+                            is_active=True,
+                        )
+                    )
+                    changed = True
+                elif (
+                    topic_obj.topic_name == "Python Basics"
+                    and question_obj.display_order == 0
+                    and question_obj.title == "Print Hello World"
+                ):
+                    question_obj.title = q["title"]
+                    question_obj.description = q["description"]
+                    question_obj.difficulty = q.get("difficulty", "Easy")
+                    question_obj.starter_code = q.get("starter_code", "")
+                    question_obj.expected_output = q.get("expected_output")
+                    changed = True
 
-        self.db.commit()
+        if changed:
+            self.db.commit()
+
+    def list_questions(self, *, topic_id: int, student_id: int) -> list[dict[str, Any]]:
+        self.ensure_seed_data()
+
+        questions = self.db.scalars(
+            select(PracticeQuestion)
+            .where(
+                PracticeQuestion.topic_id == topic_id,
+                PracticeQuestion.is_active.is_(True),
+            )
+            .order_by(PracticeQuestion.display_order.asc(), PracticeQuestion.id.asc())
+        ).all()
+
+        if not questions:
+            return []
+
+        question_ids = [question.id for question in questions]
+        progress = {
+            row.question_id: row
+            for row in self.db.scalars(
+                select(StudentPracticeProgress).where(
+                    StudentPracticeProgress.student_id == student_id,
+                    StudentPracticeProgress.question_id.in_(question_ids),
+                )
+            ).all()
+        }
+
+        return [
+            {
+                "id": question.id,
+                "title": question.title,
+                "description": question.description,
+                "difficulty": question.difficulty,
+                "starter_code": question.starter_code,
+                "expected_output": question.expected_output,
+                "display_order": question.display_order,
+                "completed": bool(progress.get(question.id) and progress[question.id].completed),
+            }
+            for question in questions
+        ]
 
     def list_topics(self, *, student_id: int) -> list[dict[str, Any]]:
         self.ensure_seed_data()
