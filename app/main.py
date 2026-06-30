@@ -28,9 +28,26 @@ configure_logging()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    if settings.auto_create_schema:
+    import logging
+
+    logger = logging.getLogger(__name__)
+
+    logger.info("Starting app (auto_create_schema=%s)", settings.auto_create_schema)
+
+
+    # Never run schema creation when AUTO_CREATE_SCHEMA=false
+    if (
+        getattr(settings, "AUTO_CREATE_SCHEMA", False)
+        and settings.auto_create_schema
+    ):
+        logger.info("Running Base.metadata.create_all()")
         Base.metadata.create_all(bind=engine)
+    else:
+        logger.info("Skipping Base.metadata.create_all()")
+
+
     db = SessionLocal()
+
     try:
         AdminService(db).bootstrap_defaults()
     finally:
@@ -58,6 +75,9 @@ app.include_router(api_auth.router, prefix="/api")
 app.include_router(api_admin.router, prefix="/api")
 app.include_router(api_teacher.router, prefix="/api")
 app.include_router(api_student.router, prefix="/api")
+
+from app.api.routes.practice_lab import router as api_practice_lab
+app.include_router(api_practice_lab, prefix="/api")
 
 
 @app.exception_handler(404)

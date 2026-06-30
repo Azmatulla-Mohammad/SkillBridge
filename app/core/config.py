@@ -25,7 +25,12 @@ class Settings(BaseSettings):
     # IMPORTANT: runtime must be driven by env; no SQLite defaults in production.
     database_url: str | None = None
 
-    auto_create_schema: bool = True
+    auto_create_schema: bool = False
+
+    # Development-only flag: if false, SQLAlchemy will not run Base.metadata.create_all() at startup.
+    # Read from AUTO_CREATE_SCHEMA env var (auto_create_schema field).
+
+
     secure_cookies: bool = False
     session_cookie_name: str = "skillbridge_session"
     access_cookie_name: str = "skillbridge_token"
@@ -63,6 +68,12 @@ class Settings(BaseSettings):
     default_course_duration_weeks: int = 12
     default_course_price: int = 4999
 
+    # Code execution provider for Practice Lab
+    CODE_EXECUTION_PROVIDER: str = "local_python"
+    PYTHON_EXECUTION_TIMEOUT: int = 5
+    PYTHON_MAX_OUTPUT_SIZE: int = 50000
+
+
     @property
     def is_sqlite(self) -> bool:
         return bool(self.database_url) and self.database_url.startswith("sqlite")
@@ -99,8 +110,15 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     settings = Settings()
 
+    import logging
+
+    logger = logging.getLogger(__name__)
+    logger.info("auto_create_schema=%s", settings.auto_create_schema)
+
+
     # Fail fast: database_url must come from DATABASE_URL env var for PG migration.
     if not settings.database_url:
+
         raise RuntimeError(
             "DATABASE_URL is not set. Set it to a PostgreSQL DSN like: "
             "postgresql+psycopg://postgres:<password>@localhost:5432/skillbridge"

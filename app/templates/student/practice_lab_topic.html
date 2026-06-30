@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="student-page-heading">
+    <p class="eyebrow">Practice Lab</p>
+    <h2>{{ topic.topic_name }}</h2>
+    <p>One question at a time. Run Code to test your solution.</p>
+
+  </div>
+
+  <div class="grid grid-2">
+    <article class="card student-panel">
+      <div class="section-heading left compact">
+        <p class="eyebrow">Question</p>
+        <h2>{{ question.title }}</h2>
+      </div>
+
+      <p style="margin-top: 0.75rem;" class="muted">Difficulty: {{ question.difficulty }}</p>
+      <div style="margin-top: 1rem;">
+        <p>{{ question.description }}</p>
+      </div>
+
+      <div style="margin-top: 1.5rem;">
+        <label class="checkbox" style="padding-top: 0;">
+          <input type="checkbox" checked disabled />
+          <span>Starter code (read-only)</span>
+        </label>
+
+        <div style="margin-top: 0.7rem;">
+          <textarea
+            disabled
+            style="min-height: 180px; resize: vertical;"
+            class="form-control"
+          >{{ question.starter_code }}</textarea>
+        </div>
+      </div>
+    </article>
+
+    <article class="card student-panel">
+      <div class="section-heading left compact">
+        <p class="eyebrow">Code Editor</p>
+        <h2>Practice Question</h2>
+      </div>
+
+      <div style="margin-top: 1rem;">
+        <button id="practice_lab_run_btn" class="button button-secondary" type="button">Run Code</button>
+      </div>
+
+      <div
+        id="practice_lab_editor_host"
+        style="margin-top: 1rem;"
+        class="inset-card"
+      >
+        <div
+          id="practice_lab_editor_root"
+          data-question-id="{{ question.id }}"
+          data-starter-code='{{ question.starter_code | replace("'", "&#39;") }}'
+        >
+          <div
+            id="practice_lab_editor"
+            style="height: 450px; min-height: 450px; resize: vertical; overflow: auto;"
+          ></div>
+        </div>
+      </div>
+
+      <div style="margin-top: 1rem;" class="inset-card" >
+        <p class="eyebrow" style="color: inherit; margin-bottom: 0.5rem;">Output</p>
+        <pre id="practice_lab_output" style="margin: 0; white-space: pre-wrap;">Run your code to see output.</pre>
+      </div>
+    </article>
+  </div>
+
+{% endblock %}
+

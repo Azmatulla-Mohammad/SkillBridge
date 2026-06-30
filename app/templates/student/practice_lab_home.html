@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="student-page-heading">
+    <p class="eyebrow">Practice Lab</p>
+    <h2>Python Topics</h2>
+    <p>Practice step-by-step. Pick a topic to view a question.</p>
+  </div>
+
+  <div class="student-assignment-stack">
+    {% for topic in topics %}
+      <article class="card student-assignment-card">
+        <div class="student-assignment-main">
+          <div>
+            <h3>{{ topic.topic_name }}</h3>
+            <div class="student-assignment-meta">
+              <span><i data-lucide="book-open"></i>{{ topic.question_count }} Questions</span>
+              <span><i data-lucide="percent"></i>{{ topic.completion_percentage }}% Completion</span>
+            </div>
+          </div>
+          <a class="button button-primary" href="/student/practice-lab/topic/{{ topic.id }}">
+            Continue
+          </a>
+        </div>
+      </article>
+    {% else %}
+      <div class="student-empty-state">
+        <i data-lucide="book"></i>
+        <p>No topics available.</p>
+      </div>
+    {% endfor %}
+  </div>
+{% endblock %}
+

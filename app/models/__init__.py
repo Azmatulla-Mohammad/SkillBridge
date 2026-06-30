@@ -10,6 +10,9 @@ from app.models.entities import (
     InquiryType,
     Material,
     Meeting,
+    PracticeQuestion,
+    PracticeTopic,
+    StudentPracticeProgress,
     StudentProfile,
     Submission,
     TeacherProfile,
@@ -29,10 +32,14 @@ __all__ = [
     "InquiryType",
     "Material",
     "Meeting",
+    "PracticeQuestion",
+    "PracticeTopic",
+    "StudentPracticeProgress",
     "StudentProfile",
     "Submission",
     "TeacherProfile",
     "User",
     "UserRole",
 ]
+
 

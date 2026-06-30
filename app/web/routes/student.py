@@ -208,3 +208,54 @@ def update_profile(
         return redirect_with_flash(request, "/student/profile", message="Profile updated successfully.")
     except Exception as exc:
         return redirect_with_flash(request, "/student/profile", message=str(exc), level="error")
+
+
+@router.get("/practice-lab", name="student_practice_lab")
+def practice_lab_home(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_web_user(UserRole.STUDENT)),
+):
+    from app.services.practice_lab import PracticeLabService
+
+    topics = PracticeLabService(db).list_topics(student_id=current_user.id)
+    return render_template(
+        request,
+        "student/practice_lab_home.html",
+        title="Practice Lab",
+        current_user=current_user,
+        topics=topics,
+    )
+
+
+@router.get("/practice-lab/topic/{topic_id}", name="student_practice_lab_topic")
+def practice_lab_topic_page(
+    request: Request,
+    topic_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(require_web_user(UserRole.STUDENT)),
+):
+    from app.services.practice_lab import PracticeLabService
+
+    service = PracticeLabService(db)
+    topic = service.get_topic(topic_id)
+    if not topic:
+        from fastapi.responses import RedirectResponse
+
+        return RedirectResponse(url="/student/practice-lab", status_code=303)
+
+    question = service.get_first_question(topic_id=topic_id)
+    if not question:
+        from fastapi.responses import RedirectResponse
+
+        return RedirectResponse(url="/student/practice-lab", status_code=303)
+
+    return render_template(
+        request,
+        "student/practice_lab_topic.html",
+        title=f"{topic.topic_name}",
+        current_user=current_user,
+        topic=topic,
+        question=question,
+    )
+

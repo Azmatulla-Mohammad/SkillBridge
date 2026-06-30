@@ -297,3 +297,74 @@ class ActivityLog(Base):
 
     actor: Mapped[User | None] = relationship(back_populates="activity_logs")
 
+
+class PracticeTopic(TimestampMixin, Base):
+    __tablename__ = "practice_topics"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    topic_name: Mapped[str] = mapped_column(String(160), unique=True)
+
+
+
+
+class PracticeQuestion(TimestampMixin, Base):
+    __tablename__ = "practice_questions"
+    __table_args__ = (
+        UniqueConstraint(
+            "topic_id",
+            "display_order",
+            name="uq_practice_questions_topic_id_display_order",
+        ),
+    )
+
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    topic_id: Mapped[int] = mapped_column(ForeignKey("practice_topics.id", ondelete="CASCADE"))
+
+    title: Mapped[str] = mapped_column(String(160))
+    description: Mapped[str] = mapped_column(Text)
+    difficulty: Mapped[str] = mapped_column(String(32))
+    starter_code: Mapped[str] = mapped_column(Text, default="", server_default="")
+    expected_output: Mapped[str | None] = mapped_column(Text, nullable=True)
+    display_order: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
+
+    topic: Mapped[PracticeTopic] = relationship()
+
+
+class StudentPracticeProgress(Base):
+    __tablename__ = "student_practice_progress"
+    __table_args__ = (
+        UniqueConstraint(
+            "student_id",
+            "question_id",
+            name="uq_student_practice_progress_student_id_question_id",
+        ),
+        Index("ix_student_practice_progress_student_id", "student_id"),
+        Index("ix_student_practice_progress_question_id", "question_id"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    question_id: Mapped[int] = mapped_column(
+        ForeignKey("practice_questions.id", ondelete="CASCADE")
+    )
+
+    attempts_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    completed: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    latest_output: Mapped[str | None] = mapped_column(Text, nullable=True)
+    latest_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default="now()",
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default="now()",
+    )
+
+
