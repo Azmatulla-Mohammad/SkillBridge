@@ -4290,47 +4290,208 @@ tbody tr td[colspan] {
 .practice-lab-main-card {
   overflow: hidden;
   padding: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08);
 }
 
 .practice-lab-question-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 1.35rem 1.55rem 1.2rem;
+  gap: 1.25rem;
+  padding: 1.45rem 1.65rem 1.15rem;
   border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
 }
 
-.practice-lab-question-head .eyebrow {
-  color: #4f46e5;
-  font-size: 0.82rem;
-  letter-spacing: 0;
-  text-transform: none;
+.practice-lab-question-intro {
+  min-width: 0;
 }
 
 .practice-lab-title {
-  margin-top: 0.35rem;
+  margin: 0;
   color: #111827;
-  font-size: 1.42rem;
-  line-height: 1.18;
+  font-size: 32px;
+  font-weight: 900;
+  line-height: 1.12;
 }
 
-.practice-lab-description {
-  margin-top: 0.45rem;
+.practice-lab-description-summary {
+  margin: 0.85rem 0 0;
   color: #475569;
-  font-size: 0.9rem;
+  font-size: 16px;
   font-weight: 600;
+  line-height: 1.65;
+}
+
+.practice-lab-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.9rem;
+}
+
+.practice-lab-difficulty,
+.practice-lab-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0.26rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 7px 16px rgba(15, 23, 42, 0.06);
 }
 
 .practice-lab-difficulty {
-  display: inline-flex;
-  margin-top: 0.7rem;
-  border-radius: 6px;
-  padding: 0.22rem 0.65rem;
   color: #047857;
   background: #d1fae5;
-  font-size: 0.75rem;
+  border-color: #a7f3d0;
+}
+
+.practice-lab-difficulty.difficulty-medium {
+  color: #9a3412;
+  background: #ffedd5;
+  border-color: #fed7aa;
+}
+
+.practice-lab-difficulty.difficulty-hard {
+  color: #b91c1c;
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+
+.practice-lab-topic-pill {
+  color: #3730a3;
+  background: #eef2ff;
+  border-color: #c7d2fe;
+}
+
+.practice-lab-company-pill {
+  color: #075985;
+  background: #e0f2fe;
+  border-color: #bae6fd;
+}
+
+.practice-lab-frequency-pill {
+  color: #92400e;
+  background: #fef3c7;
+  border-color: #fde68a;
+}
+
+.practice-lab-frequency-pill.frequency-high {
+  color: #be123c;
+  background: #ffe4e6;
+  border-color: #fecdd3;
+}
+
+.practice-lab-frequency-pill.frequency-low {
+  color: #166534;
+  background: #dcfce7;
+  border-color: #bbf7d0;
+}
+
+.practice-lab-description-panel {
+  padding: 0.45rem 1.65rem 1.35rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.practice-lab-description-section {
+  padding: 1rem 0;
+  border-top: 1px solid #eef2f7;
+}
+
+.practice-lab-description-section:first-child {
+  border-top: 0;
+}
+
+.practice-lab-description-section h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.practice-lab-description-section p {
+  margin: 0.45rem 0 0;
+  color: #334155;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.practice-lab-info-card,
+.practice-lab-description-section pre {
+  margin: 0.55rem 0 0;
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  font-size: 16px;
+  line-height: 1.6;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+}
+
+.practice-lab-info-card {
+  border: 1px solid #dbe4ef;
+  color: #0f172a;
+  background: #f8fafc;
+  font-weight: 600;
+}
+
+.practice-lab-description-section pre {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 15px;
+  font-weight: 700;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.practice-lab-light-code {
+  border: 1px solid #dbe4ef;
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+.practice-lab-dark-code {
+  border: 1px solid #1e293b;
+  color: #e2e8f0;
+  background: #0f172a;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.18);
+}
+
+.practice-lab-complexity-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.65rem;
+}
+
+.practice-lab-complexity-card {
+  border: 1px solid #dbe4ef;
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  background: #f8fafc;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+}
+
+.practice-lab-complexity-card span {
+  display: block;
+  color: #64748b;
+  font-size: 0.82rem;
   font-weight: 900;
+}
+
+.practice-lab-complexity-card strong {
+  display: block;
+  margin-top: 0.4rem;
+  color: #111827;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 1rem;
 }
 
 .practice-lab-hint-button {
@@ -4349,8 +4510,101 @@ tbody tr td[colspan] {
   opacity: 1;
 }
 
+.practice-lab-modal-open {
+  overflow: hidden;
+}
+
+.practice-lab-modal[hidden] {
+  display: none;
+}
+
+.practice-lab-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.practice-lab-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(4px);
+}
+
+.practice-lab-modal-panel {
+  position: relative;
+  z-index: 1;
+  width: min(560px, 100%);
+  max-height: min(680px, calc(100vh - 2rem));
+  overflow: auto;
+  border: 1px solid #dbe4ef;
+  border-radius: 8px;
+  padding: 1.1rem;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+}
+
+.practice-lab-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.practice-lab-modal-head h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 1.15rem;
+}
+
+.practice-lab-hints-body {
+  padding-top: 0.9rem;
+  color: #334155;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.65;
+}
+
+.practice-lab-hints-body ol {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.practice-lab-hints-body li + li {
+  margin-top: 0.65rem;
+}
+
 .practice-lab-editor-card {
   background: #f8fafc;
+}
+
+.practice-lab-editor-card:fullscreen {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  background: #0f172a;
+}
+
+.practice-lab-editor-card:fullscreen .practice-lab-editor-topbar,
+.practice-lab-editor-card:fullscreen .practice-lab-buttons {
+  flex: 0 0 auto;
+  background: #f8fafc;
+}
+
+.practice-lab-editor-card:fullscreen .practice-lab-editor-host {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 1rem;
+}
+
+.practice-lab-editor-card:fullscreen #practice_lab_editor {
+  height: 100% !important;
+  min-height: 100% !important;
 }
 
 .practice-lab-editor-topbar {
@@ -4428,10 +4682,23 @@ tbody tr td[colspan] {
   padding: 1.35rem;
 }
 
+.practice-lab-nav-buttons,
+.practice-lab-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
 .practice-lab-buttons .button {
   min-height: 42px;
   border-radius: 6px;
   font-size: 0.86rem;
+}
+
+.practice-lab-buttons .button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .practice-lab-buttons .button-secondary {
@@ -4440,12 +4707,82 @@ tbody tr td[colspan] {
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
 }
 
+.practice-lab-run-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+#practice_lab_run_btn.is-running .practice-lab-run-label::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #ffffff;
+  border-radius: 999px;
+  animation: practice-lab-spin 0.75s linear infinite;
+}
+
+@keyframes practice-lab-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .practice-lab-output-card {
   margin: 0 1.35rem 1.35rem;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 1rem;
   background: #ffffff;
+}
+
+.practice-lab-output-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.practice-lab-output-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  border: 1px solid #dbe4ef;
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.practice-lab-output-status.status-idle {
+  color: #475569;
+  background: #f8fafc;
+}
+
+.practice-lab-output-status.status-running {
+  color: #3730a3;
+  background: #eef2ff;
+  border-color: #c7d2fe;
+}
+
+.practice-lab-output-status.status-success {
+  color: #047857;
+  background: #d1fae5;
+  border-color: #a7f3d0;
+}
+
+.practice-lab-output-status.status-runtime,
+.practice-lab-output-status.status-syntax {
+  color: #b91c1c;
+  background: #fee2e2;
+  border-color: #fecaca;
+}
+
+.practice-lab-output-status.status-timeout {
+  color: #9a3412;
+  background: #ffedd5;
+  border-color: #fed7aa;
 }
 
 .practice-lab-output-pre,
@@ -4537,6 +4874,14 @@ tbody tr td[colspan] {
   .practice-lab-workspace {
     grid-template-columns: 1fr;
   }
+
+  .practice-lab-question-head {
+    padding: 1.25rem;
+  }
+
+  .practice-lab-description-panel {
+    padding: 0.35rem 1.25rem 1.2rem;
+  }
 }
 
 @media (max-width: 720px) {
@@ -4590,6 +4935,22 @@ tbody tr td[colspan] {
 
   .practice-lab-heading h2 {
     font-size: 1.5rem;
+  }
+
+  .practice-lab-title {
+    font-size: 26px;
+  }
+
+  .practice-lab-description-section h3 {
+    font-size: 18px;
+  }
+
+  .practice-lab-badge-row {
+    gap: 0.4rem;
+  }
+
+  .practice-lab-complexity-grid {
+    grid-template-columns: 1fr;
   }
 
   .practice-lab-hint-button,

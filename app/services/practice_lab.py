@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from html import unescape
+import re
 from typing import Any
 
 from sqlalchemy import func, select
@@ -8,6 +10,75 @@ from sqlalchemy.orm import Session
 
 from app.core.utils import utcnow
 from app.models import PracticeQuestion, PracticeTopic, StudentPracticeProgress, User, UserRole
+from app.services.practice_lab_library import build_practice_lab_topics
+
+
+def _clean_question_description(description: str) -> str:
+    cleaned = unescape(description or "")
+    cleaned = re.sub(r"<br\s*/?>", "\n", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"</?(?:p|div|span|strong|b|em|i)[^>]*>", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip()
+
+
+QUESTION_DESCRIPTION_LABELS = (
+    "Topic",
+    "Companies Asked",
+    "Estimated Interview Frequency",
+    "Interview Frequency",
+    "Problem Statement",
+    "Input Format",
+    "Output Format",
+    "Constraints",
+    "Sample Input",
+    "Sample Output",
+    "Explanation",
+    "Expected Time Complexity",
+    "Expected Space Complexity",
+)
+
+QUESTION_DESCRIPTION_DISPLAY_LABELS = {
+    "Estimated Interview Frequency": "Interview Frequency",
+}
+
+QUESTION_CODE_SECTION_LABELS = {"Constraints", "Sample Input", "Sample Output"}
+QUESTION_META_SECTION_LABELS = {"Topic", "Companies Asked", "Interview Frequency"}
+
+
+def _parse_question_description(description: str) -> dict[str, Any]:
+    cleaned = _clean_question_description(description)
+    label_pattern = "|".join(re.escape(label) for label in QUESTION_DESCRIPTION_LABELS)
+    matches = list(re.finditer(rf"(?m)^\s*({label_pattern})\s*:\s*", cleaned))
+
+    if not matches:
+        return {
+            "summary": cleaned,
+            "meta": [],
+            "body": [{"label": "Problem Statement", "value": cleaned, "code": False}] if cleaned else [],
+        }
+
+    parsed: list[dict[str, Any]] = []
+    for index, match in enumerate(matches):
+        raw_label = match.group(1)
+        label = QUESTION_DESCRIPTION_DISPLAY_LABELS.get(raw_label, raw_label)
+        start = match.end()
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(cleaned)
+        value = cleaned[start:end].strip()
+        if not value:
+            continue
+        parsed.append(
+            {
+                "label": label,
+                "value": value,
+                "code": label in QUESTION_CODE_SECTION_LABELS,
+            }
+        )
+
+    return {
+        "summary": "",
+        "meta": [section for section in parsed if section["label"] in QUESTION_META_SECTION_LABELS],
+        "body": [section for section in parsed if section["label"] not in QUESTION_META_SECTION_LABELS],
+    }
 
 
 DEFAULT_PYTHON_TOPICS: list[dict[str, Any]] = [
@@ -77,8 +148,19 @@ class PracticeLabService:
 
     def ensure_seed_data(self) -> None:
         changed = False
+        library_topics = build_practice_lab_topics()
+        official_topic_names = {topic["topic_name"] for topic in library_topics}
+        official_titles_by_topic = {
+            topic["topic_name"]: {question["title"] for question in topic.get("questions", [])}
+            for topic in library_topics
+        }
+        official_question_titles = {
+            question["title"]
+            for topic in library_topics
+            for question in topic.get("questions", [])
+        }
 
-        for topic in DEFAULT_PYTHON_TOPICS:
+        for topic in library_topics:
             topic_obj = self.db.scalar(
                 select(PracticeTopic).where(PracticeTopic.topic_name == topic["topic_name"])
             )
@@ -92,9 +174,17 @@ class PracticeLabService:
                 question_obj = self.db.scalar(
                     select(PracticeQuestion).where(
                         PracticeQuestion.topic_id == topic_obj.id,
-                        PracticeQuestion.display_order == q_index,
+                        PracticeQuestion.title == q["title"],
                     )
                 )
+                if question_obj is None:
+                    question_obj = self.db.scalar(
+                        select(PracticeQuestion).where(
+                            PracticeQuestion.topic_id == topic_obj.id,
+                            PracticeQuestion.display_order == q_index,
+                        )
+                    )
+
                 if question_obj is None:
                     self.db.add(
                         PracticeQuestion(
@@ -109,17 +199,39 @@ class PracticeLabService:
                         )
                     )
                     changed = True
-                elif (
-                    topic_obj.topic_name == "Python Basics"
-                    and question_obj.display_order == 0
-                    and question_obj.title == "Print Hello World"
-                ):
-                    question_obj.title = q["title"]
-                    question_obj.description = q["description"]
-                    question_obj.difficulty = q.get("difficulty", "Easy")
-                    question_obj.starter_code = q.get("starter_code", "")
-                    question_obj.expected_output = q.get("expected_output")
-                    changed = True
+                    continue
+
+                updates = {
+                    "title": q["title"],
+                    "description": q["description"],
+                    "difficulty": q.get("difficulty", "Easy"),
+                    "starter_code": q.get("starter_code", ""),
+                    "expected_output": q.get("expected_output"),
+                    "display_order": q_index,
+                    "is_active": True,
+                }
+                for field, value in updates.items():
+                    if getattr(question_obj, field) != value:
+                        setattr(question_obj, field, value)
+                        changed = True
+
+        existing_questions = self.db.execute(
+            select(PracticeQuestion, PracticeTopic.topic_name)
+            .join(PracticeTopic, PracticeTopic.id == PracticeQuestion.topic_id)
+        ).all()
+        for question_obj, topic_name in existing_questions:
+            is_official = (
+                topic_name in official_topic_names
+                and question_obj.title in official_titles_by_topic.get(topic_name, set())
+                and question_obj.title in official_question_titles
+            )
+            if not is_official and question_obj.is_active:
+                question_obj.is_active = False
+                changed = True
+            clean_description = _clean_question_description(question_obj.description)
+            if question_obj.description != clean_description:
+                question_obj.description = clean_description
+                changed = True
 
         if changed:
             self.db.commit()
@@ -154,12 +266,13 @@ class PracticeLabService:
             {
                 "id": question.id,
                 "title": question.title,
-                "description": question.description,
+                "description": _clean_question_description(question.description),
                 "difficulty": question.difficulty,
                 "starter_code": question.starter_code,
                 "expected_output": question.expected_output,
                 "display_order": question.display_order,
                 "completed": bool(progress.get(question.id) and progress[question.id].completed),
+                "description_sections": _parse_question_description(question.description),
             }
             for question in questions
         ]
@@ -167,7 +280,14 @@ class PracticeLabService:
     def list_topics(self, *, student_id: int) -> list[dict[str, Any]]:
         self.ensure_seed_data()
 
-        topics = self.db.scalars(select(PracticeTopic).order_by(PracticeTopic.id.asc())).all()
+        active_topic_ids = select(PracticeQuestion.topic_id).where(
+            PracticeQuestion.is_active.is_(True)
+        )
+        topics = self.db.scalars(
+            select(PracticeTopic)
+            .where(PracticeTopic.id.in_(active_topic_ids))
+            .order_by(PracticeTopic.id.asc())
+        ).all()
 
         topic_ids = [t.id for t in topics]
         if not topic_ids:
@@ -181,7 +301,10 @@ class PracticeLabService:
                     PracticeQuestion.topic_id.label("topic_id"),
                     func.count(PracticeQuestion.id).label("question_count"),
                 )
-                .where(PracticeQuestion.topic_id.in_(topic_ids))
+                .where(
+                    PracticeQuestion.topic_id.in_(topic_ids),
+                    PracticeQuestion.is_active.is_(True),
+                )
                 .group_by(PracticeQuestion.topic_id)
             )
         }
@@ -200,6 +323,7 @@ class PracticeLabService:
                     StudentPracticeProgress.student_id == student_id,
                     StudentPracticeProgress.completed.is_(True),
                     PracticeQuestion.topic_id.in_(topic_ids),
+                    PracticeQuestion.is_active.is_(True),
                 )
                 .group_by(PracticeQuestion.topic_id)
             )

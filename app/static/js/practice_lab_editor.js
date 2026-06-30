@@ -36,6 +36,12 @@
     }
   }
 
+  function refreshIcons() {
+    if (window.lucide && typeof window.lucide.createIcons === "function") {
+      window.lucide.createIcons();
+    }
+  }
+
   // Ensure we don't load/initialize Monaco multiple times.
   let monacoLoadPromise = null;
   function loadMonacoOnce() {
@@ -129,6 +135,11 @@
     return {
       kind: "fallback",
       getValue: () => textarea.value,
+      setValue: (value) => {
+        textarea.value = value;
+        textarea.dispatchEvent(new Event("input", { bubbles: true }));
+      },
+      layout: () => {},
       onDidChangeContent: (handler) => {
         textarea.addEventListener("input", () => handler());
       },
@@ -170,8 +181,141 @@
     return {
       kind: "monaco",
       getValue: () => editor.getValue(),
+      setValue: (value) => {
+        editor.setValue(value);
+        persistToLocalStorage(questionId, value);
+      },
+      layout: () => editor.layout(),
+      focus: () => editor.focus(),
       onReady: () => {},
     };
+  }
+
+  function outputKind({ ok, data, timedOut = false }) {
+    const stderr = String(data && data.stderr ? data.stderr : "");
+    if (timedOut || /timeout|timed out/i.test(stderr)) return "timeout";
+    if (ok && data && data.success) return "success";
+    if (/SyntaxError|IndentationError|TabError/i.test(stderr)) return "syntax";
+    return "runtime";
+  }
+
+  function outputLabel(kind) {
+    if (kind === "idle") return "Ready";
+    if (kind === "success") return "Success";
+    if (kind === "syntax") return "Syntax Error";
+    if (kind === "timeout") return "Timeout";
+    if (kind === "running") return "Running...";
+    return "Runtime Error";
+  }
+
+  function setOutputStatus(statusEl, kind) {
+    if (!statusEl) return;
+    statusEl.textContent = outputLabel(kind);
+    statusEl.className = `practice-lab-output-status status-${kind}`;
+  }
+
+  function setRunningState(runBtn, isRunning) {
+    if (!runBtn) return;
+    const label = runBtn.querySelector(".practice-lab-run-label");
+    runBtn.disabled = isRunning;
+    runBtn.classList.toggle("is-running", isRunning);
+    if (label) label.textContent = isRunning ? "Running..." : "Submit Code";
+  }
+
+  function wireHints({ root }) {
+    const hintBtn = document.getElementById("practice_lab_hint_btn");
+    const modal = document.getElementById("practice_lab_hints_modal");
+    const panel = modal ? modal.querySelector(".practice-lab-modal-panel") : null;
+    const body = document.getElementById("practice_lab_hints_body");
+    const closeEls = modal ? modal.querySelectorAll("[data-practice-lab-close-hints]") : [];
+    if (!hintBtn || !modal || !panel || !body) return;
+
+    let hints = [];
+    try {
+      const rawMetadata = JSON.parse(root.dataset.hintsMetadata || "\"\"");
+      const metadata = rawMetadata ? JSON.parse(rawMetadata) : {};
+      hints = Array.isArray(metadata.hints) ? metadata.hints : [];
+    } catch (_) {
+      hints = [];
+    }
+
+    function renderHints() {
+      body.innerHTML = "";
+      if (!Array.isArray(hints) || hints.length === 0) {
+        const empty = document.createElement("p");
+        empty.textContent = "Hints are not available for this question yet.";
+        body.appendChild(empty);
+        return;
+      }
+
+      const list = document.createElement("ol");
+      hints.forEach((hint) => {
+        const item = document.createElement("li");
+        item.textContent = String(hint);
+        list.appendChild(item);
+      });
+      body.appendChild(list);
+    }
+
+    function openHints() {
+      renderHints();
+      modal.hidden = false;
+      document.body.classList.add("practice-lab-modal-open");
+      window.setTimeout(() => panel.focus(), 0);
+    }
+
+    function closeHints() {
+      modal.hidden = true;
+      document.body.classList.remove("practice-lab-modal-open");
+      hintBtn.focus();
+    }
+
+    hintBtn.addEventListener("click", openHints);
+    closeEls.forEach((el) => el.addEventListener("click", closeHints));
+    document.addEventListener("keydown", (event) => {
+      if (!modal.hidden && event.key === "Escape") closeHints();
+    });
+  }
+
+  function wireFullscreen({ editorRef }) {
+    const fullscreenBtn = document.getElementById("practice_lab_fullscreen_btn");
+    const editorCard = document.querySelector(".practice-lab-editor-card");
+    if (!fullscreenBtn || !editorCard) return;
+
+    function updateFullscreenButton() {
+      const isFullscreen = document.fullscreenElement === editorCard;
+      fullscreenBtn.setAttribute(
+        "aria-label",
+        isFullscreen ? "Exit fullscreen editor" : "Enter fullscreen editor"
+      );
+      fullscreenBtn.setAttribute(
+        "title",
+        isFullscreen ? "Exit fullscreen editor" : "Fullscreen editor"
+      );
+      fullscreenBtn.innerHTML = isFullscreen
+        ? '<i data-lucide="minimize-2"></i>'
+        : '<i data-lucide="maximize-2"></i>';
+      refreshIcons();
+      window.setTimeout(() => {
+        if (editorRef.layout) editorRef.layout();
+        if (isFullscreen && editorRef.focus) editorRef.focus();
+      }, 80);
+    }
+
+    fullscreenBtn.addEventListener("click", async () => {
+      try {
+        if (document.fullscreenElement === editorCard) {
+          await document.exitFullscreen();
+        } else {
+          await editorCard.requestFullscreen();
+        }
+      } catch (_) {
+        // Browser may block fullscreen in unsupported contexts.
+      }
+    });
+
+    document.addEventListener("fullscreenchange", updateFullscreenButton);
+    updateFullscreenButton();
   }
 
   function wireRunButton({ root, editorRef, outputPanel }) {
@@ -181,6 +325,7 @@
     const execTimeEl = document.getElementById("practice_lab_execution_time");
     const exitCodeEl = document.getElementById("practice_lab_exit_code");
     const errorsEl = document.getElementById("practice_lab_errors");
+    const statusEl = document.getElementById("practice_lab_output_status");
 
     function safeSetText(el, value) {
       if (!el) return;
@@ -204,25 +349,31 @@
     safeSetText(exitCodeEl, "-");
     if (errorsEl) errorsEl.textContent = "";
     outputPanel.textContent = "Run your code to see output.";
+    setOutputStatus(statusEl, "idle");
 
     if (resetBtn) {
       resetBtn.addEventListener("click", () => {
+        if (!window.confirm("Reset your code to the starter template?")) return;
         const questionId = root.dataset.questionId;
+        const starterCode = getStarterOrFallback({ starterCode: root.dataset.starterCode || "" });
+        editorRef.setValue(starterCode);
         try {
-          window.localStorage.removeItem(`practice_lab_${questionId}`);
+          window.localStorage.setItem(`practice_lab_${questionId}`, starterCode);
         } catch (_) {
           // ignore
         }
-        window.location.reload();
+        if (editorRef.focus) editorRef.focus();
       });
     }
 
-    runBtn.addEventListener("click", async () => {
+    async function runCurrentCode() {
+      if (runBtn.disabled) return;
+      setRunningState(runBtn, true);
       outputPanel.textContent = "Running...";
       safeSetText(execTimeEl, "-");
       safeSetText(exitCodeEl, "-");
       if (errorsEl) errorsEl.textContent = "";
-
+      setOutputStatus(statusEl, "running");
 
       try {
         const questionId = root.dataset.questionId;
@@ -245,6 +396,7 @@
         if (!resp.ok || !data.success) {
           const stderr = data.stderr ? String(data.stderr) : "";
           const msg = stderr || data.stderr || data.stdout || `Request failed (${resp.status})`;
+          setOutputStatus(statusEl, outputKind({ ok: false, data }));
           outputPanel.textContent = msg;
           safeSetText(exitCodeEl, data.exit_code);
           safeSetText(execTimeEl, formatExecutionTime(data.execution_time));
@@ -263,13 +415,25 @@
           out += stderr;
         }
         if (!out) out = "(no output)";
+        setOutputStatus(statusEl, outputKind({ ok: true, data }));
         outputPanel.textContent = out;
         safeSetText(exitCodeEl, exitCode);
         safeSetText(execTimeEl, formatExecutionTime(data.execution_time));
         if (errorsEl) errorsEl.textContent = stderr;
       } catch (err) {
+        setOutputStatus(statusEl, "runtime");
         outputPanel.textContent = `Execution error: ${err}`;
         if (errorsEl) errorsEl.textContent = String(err);
+      } finally {
+        setRunningState(runBtn, false);
+      }
+    }
+
+    runBtn.addEventListener("click", runCurrentCode);
+    document.addEventListener("keydown", (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        event.preventDefault();
+        runCurrentCode();
       }
     });
   }
@@ -308,6 +472,8 @@
       if (outputPanel) {
         wireRunButton({ root, editorRef, outputPanel });
       }
+      wireHints({ root });
+      wireFullscreen({ editorRef });
     } catch (e) {
       console.error("[practice_lab_editor] Monaco failed; falling back to textarea", e);
 
@@ -317,6 +483,8 @@
       if (outputPanel) {
         wireRunButton({ root, editorRef, outputPanel });
       }
+      wireHints({ root });
+      wireFullscreen({ editorRef });
     }
   }
 

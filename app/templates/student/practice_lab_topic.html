@@ -3,6 +3,17 @@
 {% block content %}
   {% set name_parts = current_user.full_name.split() %}
   {% set initials = ((name_parts[0][0] if name_parts else "") ~ (name_parts[1][0] if name_parts|length > 1 else ""))|upper %}
+  {% set nav = namespace(prev=None, next=None, found=False) %}
+  {% for item in questions %}
+    {% if nav.found and nav.next is none %}
+      {% set nav.next = item %}
+    {% endif %}
+    {% if item.id == question.id %}
+      {% set nav.found = True %}
+    {% elif not nav.found %}
+      {% set nav.prev = item %}
+    {% endif %}
+  {% endfor %}
 
   <div class="practice-lab-topic-shell">
     <header class="practice-lab-top">
@@ -70,19 +81,92 @@
 
       <section class="practice-lab-right">
         <article class="card practice-lab-main-card">
+          {% set sections = question.description_sections %}
           <div class="practice-lab-question-head">
-            <div>
-              <p class="eyebrow">Question</p>
+            <div class="practice-lab-question-intro">
               <h2 class="practice-lab-title">{{ question.title }}</h2>
-              <p class="practice-lab-description">
-                {{ question.description | e | replace("\n", "<br>") | safe }}
-              </p>
-              <span class="practice-lab-difficulty">Difficulty: {{ question.difficulty }}</span>
+              <div class="practice-lab-badge-row">
+                <span class="practice-lab-difficulty difficulty-{{ question.difficulty | lower }}">
+                  {{ question.difficulty }}
+                </span>
+                {% for section in sections.meta %}
+                  {% if section.label == "Topic" %}
+                    <span class="practice-lab-pill practice-lab-topic-pill">{{ section.value }}</span>
+                  {% elif section.label == "Interview Frequency" %}
+                    <span class="practice-lab-pill practice-lab-frequency-pill frequency-{{ section.value | lower }}">
+                      {{ section.value }}
+                    </span>
+                  {% elif section.label == "Companies Asked" %}
+                    {% for company in section.value.split(",") %}
+                      <span class="practice-lab-pill practice-lab-company-pill">{{ company.strip() }}</span>
+                    {% endfor %}
+                  {% endif %}
+                {% endfor %}
+              </div>
+              {% if sections.summary %}
+                <p class="practice-lab-description-summary">{{ sections.summary }}</p>
+              {% endif %}
             </div>
-            <button class="button practice-lab-hint-button" type="button" disabled>
+            <button
+              id="practice_lab_hint_btn"
+              class="button practice-lab-hint-button"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="practice_lab_hints_modal"
+              title="View hints"
+            >
               <i data-lucide="circle-help"></i>
               View Hints
             </button>
+          </div>
+
+          <div class="practice-lab-description-panel">
+            {% set complexity_sections = [] %}
+            {% for section in sections.body %}
+              {% if section.label in ["Expected Time Complexity", "Expected Space Complexity"] %}
+                {% set _ = complexity_sections.append(section) %}
+              {% elif section.label in ["Sample Input", "Sample Output"] %}
+                <section class="practice-lab-description-section practice-lab-code-section">
+                  <h3>{{ section.label }}</h3>
+                  <pre class="practice-lab-dark-code">{{ section.value }}</pre>
+                </section>
+              {% elif section.label == "Constraints" %}
+                <section class="practice-lab-description-section practice-lab-code-section">
+                  <h3>{{ section.label }}</h3>
+                  <pre class="practice-lab-light-code">{{ section.value }}</pre>
+                </section>
+              {% elif section.label in ["Input Format", "Output Format"] %}
+                <section class="practice-lab-description-section">
+                  <h3>{{ section.label }}</h3>
+                  <div class="practice-lab-info-card">{{ section.value }}</div>
+                </section>
+              {% else %}
+                <section class="practice-lab-description-section">
+                  <h3>{{ section.label }}</h3>
+                  <p>{{ section.value }}</p>
+                </section>
+              {% endif %}
+            {% endfor %}
+
+            {% if complexity_sections %}
+              <section class="practice-lab-description-section">
+                <h3>Expected Complexity</h3>
+                <div class="practice-lab-complexity-grid">
+                  {% for section in complexity_sections %}
+                    <div class="practice-lab-complexity-card">
+                      <span>
+                        {% if section.label == "Expected Time Complexity" %}
+                          Time Complexity
+                        {% else %}
+                          Space Complexity
+                        {% endif %}
+                      </span>
+                      <strong>{{ section.value }}</strong>
+                    </div>
+                  {% endfor %}
+                </div>
+              </section>
+            {% endif %}
           </div>
 
           <div class="practice-lab-editor-card">
@@ -94,7 +178,13 @@
                   Python 3
                   <i data-lucide="chevron-down"></i>
                 </button>
-                <button class="practice-lab-icon-button" type="button" aria-label="Fullscreen editor" title="Fullscreen" disabled>
+                <button
+                  id="practice_lab_fullscreen_btn"
+                  class="practice-lab-icon-button"
+                  type="button"
+                  aria-label="Enter fullscreen editor"
+                  title="Fullscreen editor"
+                >
                   <i data-lucide="maximize-2"></i>
                 </button>
               </div>
@@ -105,25 +195,55 @@
                 id="practice_lab_editor_root"
                 data-question-id="{{ question.id }}"
                 data-starter-code='{{ question.starter_code | replace("'", "&#39;") }}'
+                data-hints-metadata='{{ question.expected_output | tojson }}'
               >
                 <div id="practice_lab_editor" style="height: 360px; min-height: 320px; resize: vertical; overflow: auto;"></div>
               </div>
             </div>
 
             <div class="practice-lab-buttons">
-              <button id="practice_lab_reset_btn" class="button button-secondary" type="button">
-                <i data-lucide="rotate-ccw"></i>
-                Reset Code
-              </button>
-              <button id="practice_lab_run_btn" class="button button-primary" type="button">
-                <i data-lucide="send"></i>
-                Submit Code
-              </button>
+              <div class="practice-lab-nav-buttons">
+                {% if nav.prev %}
+                  <a class="button button-secondary" href="/student/practice-lab/topic/{{ topic.id }}?question_id={{ nav.prev.id }}">
+                    <i data-lucide="chevron-left"></i>
+                    Previous
+                  </a>
+                {% else %}
+                  <button class="button button-secondary" type="button" disabled>
+                    <i data-lucide="chevron-left"></i>
+                    Previous
+                  </button>
+                {% endif %}
+                {% if nav.next %}
+                  <a class="button button-secondary" href="/student/practice-lab/topic/{{ topic.id }}?question_id={{ nav.next.id }}">
+                    Next
+                    <i data-lucide="chevron-right"></i>
+                  </a>
+                {% else %}
+                  <button class="button button-secondary" type="button" disabled>
+                    Next
+                    <i data-lucide="chevron-right"></i>
+                  </button>
+                {% endif %}
+              </div>
+              <div class="practice-lab-action-buttons">
+                <button id="practice_lab_reset_btn" class="button button-secondary" type="button">
+                  <i data-lucide="rotate-ccw"></i>
+                  Reset Code
+                </button>
+                <button id="practice_lab_run_btn" class="button button-primary" type="button">
+                  <i data-lucide="send"></i>
+                  <span class="practice-lab-run-label">Submit Code</span>
+                </button>
+              </div>
             </div>
           </div>
 
           <div class="practice-lab-output-card">
-            <h3>Output</h3>
+            <div class="practice-lab-output-header">
+              <h3>Output</h3>
+              <span id="practice_lab_output_status" class="practice-lab-output-status status-idle">Ready</span>
+            </div>
             <pre id="practice_lab_output" class="practice-lab-output-pre">Run your code to see output.</pre>
             <div class="practice-lab-output-meta">
               <span>exit code: <strong id="practice_lab_exit_code">-</strong></span>
@@ -133,6 +253,33 @@
           </div>
         </article>
       </section>
+    </div>
+
+    <div
+      id="practice_lab_hints_modal"
+      class="practice-lab-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="practice_lab_hints_title"
+      hidden
+    >
+      <div class="practice-lab-modal-backdrop" data-practice-lab-close-hints></div>
+      <div class="practice-lab-modal-panel" tabindex="-1">
+        <div class="practice-lab-modal-head">
+          <h3 id="practice_lab_hints_title">Hints</h3>
+          <button
+            id="practice_lab_hints_close"
+            class="practice-lab-icon-button"
+            type="button"
+            aria-label="Close hints"
+            title="Close hints"
+            data-practice-lab-close-hints
+          >
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <div id="practice_lab_hints_body" class="practice-lab-hints-body"></div>
+      </div>
     </div>
   </div>
 {% endblock %}
