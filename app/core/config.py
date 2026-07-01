@@ -41,13 +41,10 @@ class Settings(BaseSettings):
     supabase_bucket: str = "skillbridge"
     whatsapp_number: str = "919999999999"
 
-    # SMTP settings (for email notifications)
-    smtp_host: str | None = None
-    smtp_port: int | None = None
-    smtp_username: str | None = None
-    smtp_password: str | None = None
-    smtp_from: str | None = None
-    smtp_to: str | None = None
+    # Resend API settings (for email notifications)
+    resend_api_key: str = ""
+    email_from: str = "onboarding@resend.dev"
+    email_to: str = ""
 
     # Production admin bootstrap (create once)
     default_admin_email: str | None = None
